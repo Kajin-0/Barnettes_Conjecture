@@ -1,0 +1,13 @@
+{
+  "patches": 71,
+  "states": 142,
+  "valid_states": 142,
+  "invalid_states": 0,
+  "classification_counts": {
+    "feasible": 142
+  },
+  "max_patch_n": 86,
+  "elapsed_s_reported": 16.802674055099487,
+  "source_sha256": "706496b3461df3deb580615cf656235da6b6e109af11a411820aa755a8a69b91",
+  "failures": []
+}
