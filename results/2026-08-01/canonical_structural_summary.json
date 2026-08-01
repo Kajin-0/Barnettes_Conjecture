@@ -1,0 +1,100 @@
+{
+  "date": "2026-08-01",
+  "result": "no counterexample found",
+  "plantri": {
+    "version": "5.8",
+    "archive_sha256": "e78a944116fec9f2c9f5e484206276cc2b0043bae803e9815f4b2683614629b8",
+    "command": "plantri -bc4dg 92d RES/10000",
+    "shards": 8,
+    "graphs_per_shard": 300,
+    "canonical_unique_graphs": 2400,
+    "theorem_escaping_graphs": 2342,
+    "rejected": {
+      "decode_or_order": 0,
+      "class": 0,
+      "easy_faces": 0,
+      "easy_adjacency": 58
+    },
+    "retained_for_exact_analysis": 8
+  },
+  "edge_deletion_patches": {
+    "top_graph_edges": 138,
+    "complete_signatures_after_retries": 138,
+    "maximal_six_state_signatures": 138,
+    "restrictive_signatures": 0
+  },
+  "natural_cyclic_four_cut_patches": {
+    "cuts": 647,
+    "patches": 1294,
+    "complete": 1294,
+    "signature_size_counts": {
+      "6": 1292,
+      "5": 2
+    },
+    "groups": 8,
+    "pairmaps": 1283456,
+    "compatibility_histogram": {
+      "6": 1278132,
+      "5": 5315,
+      "4": 9
+    },
+    "minimum_compatibility": 4,
+    "incompatible": 0
+  },
+  "restrictive_patches": {
+    "count": 2,
+    "c156-s0": {
+      "n": 40,
+      "feasible_states": [
+        "P01",
+        "P03",
+        "P12",
+        "Q01_23",
+        "Q03_12"
+      ],
+      "missing_allowed_path": "P23"
+    },
+    "c446-s1": {
+      "n": 40,
+      "feasible_states": [
+        "P03",
+        "P12",
+        "P23",
+        "Q01_23",
+        "Q03_12"
+      ],
+      "missing_allowed_path": "P01"
+    },
+    "all_Q_states_feasible": true
+  },
+  "partial_composition": {
+    "tasks": 128,
+    "valid_compositions": 10,
+    "complete": 10,
+    "signature_size_counts": {
+      "6": 10
+    },
+    "min_signature_size": 6,
+    "incompatible_pairs": 0,
+    "valid_barnette_incompatible": 0,
+    "elapsed": 41.90755343437195
+  },
+  "annular_transfer": {
+    "annuli_available": 2084,
+    "annuli_exact_tested": 200,
+    "complete_relations": 200,
+    "true_entries_per_9x9_relation": [
+      26
+    ],
+    "relation_patterns": 12,
+    "empty_pair_products": 0,
+    "minimum_pair_product_entries": 43
+  },
+  "conclusion": {
+    "one_interface_obstruction_found": false,
+    "two_restrictive_four_poles_found": true,
+    "missing_Q_state_found": false,
+    "two_interface_empty_transfer_product_found": false,
+    "next_target": "search higher-order canonical graphs for four-poles missing Q states and expand exact annular transfer semigroup"
+  }
+}
