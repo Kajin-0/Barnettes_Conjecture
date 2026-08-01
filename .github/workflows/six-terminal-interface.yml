@@ -8,6 +8,7 @@ on:
     paths:
       - .github/workflows/six-terminal-interface.yml
       - search/six_terminal_matching_screen.py
+      - search/six_terminal_direct_glue.py
       - search/canonical_prepare.py
       - source/**
       - requirements.txt
@@ -18,6 +19,7 @@ on:
     paths:
       - .github/workflows/six-terminal-interface.yml
       - search/six_terminal_matching_screen.py
+      - search/six_terminal_direct_glue.py
       - search/canonical_prepare.py
       - source/**
       - requirements.txt
@@ -99,6 +101,17 @@ jobs:
             --output "${ROOT}/six_terminal_results.json" \
             | tee "${ROOT}/six_terminal.log"
 
+      - name: Directly synthesize sparse-interface graphs
+        run: |
+          set -euo pipefail
+          ROOT=results/six-terminal-interface
+          python search/six_terminal_direct_glue.py \
+            --input "${ROOT}/six_terminal_results.json" \
+            --candidate-cap 240 --solve-cap 160 \
+            --workers 4 --milp-time 15 --wall-time 25 --seed 20260801 \
+            --output "${ROOT}/direct_glue_results.json" \
+            | tee "${ROOT}/direct_glue.log"
+
       - name: Write manifest
         if: always()
         run: |
@@ -112,11 +125,16 @@ jobs:
                   if path.is_file():
                       files.append({'path':str(path),'bytes':path.stat().st_size,'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
           manifest={
-              'campaign':'six-terminal-cyclic-cut-interface',
+              'campaign':'six-terminal-cyclic-cut-interface-and-direct-gluing',
               'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
               'plantri_archive_sha256':'e78a944116fec9f2c9f5e484206276cc2b0043bae803e9815f4b2683614629b8',
               'software':{'python':platform.python_version(),'networkx':networkx.__version__,'numpy':numpy.__version__,'scipy':scipy.__version__},
-              'negative_policy':'sampled missing states and zero compatibility remain provisional',
+              'classification_policy':{
+                  'sampled_state':'positive only after witness validation',
+                  'whole_graph_positive':'positive only after independent cycle validation',
+                  'whole_graph_infeasible':'provisional until proof-producing SAT',
+                  'timeout_or_failure':'unknown'
+              },
               'files':files,
           }
           root.mkdir(parents=True,exist_ok=True)
