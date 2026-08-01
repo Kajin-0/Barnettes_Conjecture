@@ -8,12 +8,14 @@ on:
     paths:
       - .github/workflows/canonical-patch-search.yml
       - search/canonical_prepare.py
+      - search/exact_patch_library.py
   pull_request:
     branches:
       - main
     paths:
       - .github/workflows/canonical-patch-search.yml
       - search/canonical_prepare.py
+      - search/exact_patch_library.py
 
 permissions:
   contents: read
@@ -81,7 +83,7 @@ jobs:
             --output results/canonical/verified_canonical_92.json \
             | tee results/canonical/ranking.log
 
-      - name: Exact heterogeneous patch search
+      - name: Exact-first heterogeneous patch search
         shell: bash
         run: |
           set -euo pipefail
@@ -102,12 +104,10 @@ jobs:
           PY
           )
           mkdir -p results/canonical/patch_search
-          python search/patch_gluing_search.py \
+          python search/exact_patch_library.py \
             --verified results/canonical/verified_canonical_92.json \
-            --graph-indices "$INDICES" \
-            --sample-trials 4000 --sample-cycle-cap 120 \
-            --top-patches-per-graph 10 --candidate-gluings 24 \
-            --state-time 8 --whole-time 120 --seed 20260801 \
+            --indices "$INDICES" --per-graph 4 \
+            --state-time 6 --workers 4 --whole-time 120 \
             --output-dir results/canonical/patch_search \
             | tee results/canonical/patch_search/run.log
 
