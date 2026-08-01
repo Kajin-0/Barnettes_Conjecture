@@ -1,0 +1,30 @@
+{
+  "date": "2026-08-01",
+  "workflow_run_id": 30702355185,
+  "artifact_id": 8819239750,
+  "artifact_sha256": "8579dbf699a2bcd577b4f35172ef7a2ef41f1f33507a7d6710926f183583a979",
+  "result": "success",
+  "positive_regression": {
+    "case": "cycle4-positive-Q01_23",
+    "classification": "verified_positive",
+    "selected_edges": [[0,1],[2,3]],
+    "independent_witness_validation": true,
+    "witness_sha256": "a695361a5cc4d83e3a87c4d6872a6e790fe8272c812af83eead487cc90363b1a"
+  },
+  "negative_regression": {
+    "case": "cycle4-impossible-Q02_13",
+    "classification": "certified_negative",
+    "cnf_variables": 8,
+    "cnf_clauses": 20,
+    "cnf_sha256": "259c9fc27877f1a025caf536ad2ebfd76fbbae6499da78245d7501a3c869c499",
+    "cadical_version": "3.0.1 c60730422e758ef1cebe7aeddf2dda31c996bf04",
+    "cadical_exit_code": 20,
+    "proof_format": "textual DRAT",
+    "proof_bytes": 23,
+    "proof_sha256": "ceaa616da4099e78a9241ee4030c26f8a3c37ff8b8f402773aa3e36b102ebb90",
+    "drat_trim_exit_code": 0,
+    "drat_trim_output": "s VERIFIED",
+    "proof_verified": true
+  },
+  "policy": "No real missing Q state may be retained unless the final CNF is independently solved UNSAT by a proof-producing solver and the proof is accepted by drat-trim."
+}
