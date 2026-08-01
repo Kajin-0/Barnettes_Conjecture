@@ -40,12 +40,12 @@
     "invalid_witnesses": 0,
     "maximum_patch_order": 86,
     "elapsed_s": 16.802674055099487,
-    "witness_file": "results/2026-08-01/order92_q_hardest71_witnesses.json.gz.b64",
-    "witness_source_sha256": "706496b3461df3deb580615cf656235da6b6e109af11a411820aa755a8a69b91",
+    "full_local_witness_source_sha256": "706496b3461df3deb580615cf656235da6b6e109af11a411820aa755a8a69b91",
     "validation_file": "results/2026-08-01/order92_q_hardest71_validation.json",
     "validation_sha256": "cdf2f9010c590ea4c3b94dd3e696512fa4ce73878e0fb54ba41fc2c09f838ef6",
-    "compressed_archive_sha256": "c4747b2d21b39a3fbb695c048761329a51e6f9ec87791116cba6865e46461586",
-    "uncompressed_witness_sha256": "706496b3461df3deb580615cf656235da6b6e109af11a411820aa755a8a69b91"
+    "strongest_witness_file": "results/2026-08-01/order92_q_strongest_near_miss_witnesses.json.gz.b64",
+    "strongest_witness_uncompressed_sha256": "67174b4503c67aaac791be242fffb51641d4d72bd4e28283bbb6bcfcf4d961d7",
+    "strongest_witness_gzip_sha256": "6bc40e24b4215fa8fb848508e2690ec46bc1f907e59f3ee7df78f359d32e67e9"
   },
   "strongest_near_miss": {
     "patch": "g6-c633-s0",
