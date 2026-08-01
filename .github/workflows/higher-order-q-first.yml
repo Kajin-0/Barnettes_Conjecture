@@ -87,7 +87,7 @@ jobs:
           make -C plantri58 plantri
           ./plantri58/plantri 2>&1 | head -n 2 || true
 
-      - name: Build independent DRAT proof checker
+      - name: Build independent proof toolchain
         shell: bash
         run: |
           set -euo pipefail
@@ -95,6 +95,14 @@ jobs:
           make -C tools/drat-trim
           test -x tools/drat-trim/drat-trim
           git -C tools/drat-trim rev-parse HEAD | tee drat-trim.commit
+
+          git clone --depth 1 https://github.com/arminbiere/cadical.git tools/cadical
+          cd tools/cadical
+          ./configure
+          make -j2
+          test -x build/cadical
+          build/cadical --version
+          git rev-parse HEAD | tee ../../cadical.commit
 
       - name: Generate distributed canonical shards
         shell: bash
@@ -148,6 +156,7 @@ jobs:
             --input "${ROOT}/q_first_results.json" \
             --output-dir "${ROOT}/sat-verification" \
             --solver g4 \
+            --proof-solver tools/cadical/build/cadical \
             --drat-trim tools/drat-trim/drat-trim \
             --max-cases 100 \
             | tee "${ROOT}/sat_verification.log"
@@ -204,6 +213,7 @@ jobs:
               'plantri_archive_sha256': os.environ['PLANTRI_SHA256'],
               'plantri_command': f'plantri -bc4dg {order}d RES/10000',
               'drat_trim_commit': pathlib.Path('drat-trim.commit').read_text().strip() if pathlib.Path('drat-trim.commit').exists() else None,
+              'cadical_commit': pathlib.Path('cadical.commit').read_text().strip() if pathlib.Path('cadical.commit').exists() else None,
               'software': {
                   'python': platform.python_version(),
                   'networkx': networkx.__version__,
@@ -213,7 +223,7 @@ jobs:
               },
               'classification_policy': {
                   'positive': 'requires independently validated selected-edge witness',
-                  'negative': 'requires SAT UNSAT proof accepted by drat-trim',
+                  'negative': 'requires CaDiCaL final-CNF UNSAT proof accepted by drat-trim',
                   'timeout_or_failure': 'unknown',
               },
               'files': files,
@@ -231,5 +241,6 @@ jobs:
             results/higher-order-q-first/${{ matrix.order }}
             plantri58.tar.gz
             drat-trim.commit
+            cadical.commit
           if-no-files-found: warn
           retention-days: 30
