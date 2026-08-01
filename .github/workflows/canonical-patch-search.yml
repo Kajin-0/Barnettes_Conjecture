@@ -1,4 +1,4 @@
-name: Canonical Barnette patch search
+name: Canonical Barnette cyclic-cut search
 
 on:
   workflow_dispatch:
@@ -8,16 +8,14 @@ on:
     paths:
       - .github/workflows/canonical-patch-search.yml
       - search/canonical_prepare.py
-      - search/sat_patch_library.py
-      - search/sat_patch_library_interruptible.py
+      - search/cyclic_cut_patch_search.py
   pull_request:
     branches:
       - main
     paths:
       - .github/workflows/canonical-patch-search.yml
       - search/canonical_prepare.py
-      - search/sat_patch_library.py
-      - search/sat_patch_library_interruptible.py
+      - search/cyclic_cut_patch_search.py
 
 permissions:
   contents: read
@@ -42,9 +40,7 @@ jobs:
           cache: pip
 
       - name: Install Python dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install python-sat
+        run: pip install -r requirements.txt
 
       - name: Reconstruct exact-search sources
         run: python source/unpack_sources.py
@@ -87,33 +83,15 @@ jobs:
             --output results/canonical/verified_canonical_92.json \
             | tee results/canonical/ranking.log
 
-      - name: Exact SAT heterogeneous patch search
+      - name: Exact natural cyclic-cut signatures
         shell: bash
         run: |
           set -euo pipefail
-          COUNT=$(python - <<'PY'
-          import json
-          d=json.load(open('results/canonical/verified_canonical_92.json'))
-          print(len(d['results']))
-          PY
-          )
-          if [ "$COUNT" -lt 2 ]; then
-            echo "Fewer than two theorem-escaping candidates; exact patch search skipped." | tee results/canonical/patch_skip.log
-            exit 0
-          fi
-          INDICES=$(python - <<'PY'
-          import json
-          d=json.load(open('results/canonical/verified_canonical_92.json'))
-          print(','.join(str(i) for i in range(len(d['results']))))
-          PY
-          )
-          mkdir -p results/canonical/patch_search
-          python search/sat_patch_library_interruptible.py \
+          python search/cyclic_cut_patch_search.py \
             --verified results/canonical/verified_canonical_92.json \
-            --indices "$INDICES" --per-graph 4 \
-            --state-time 15 --workers 4 --whole-time 120 \
-            --output-dir results/canonical/patch_search \
-            | tee results/canonical/patch_search/run.log
+            --graph-index 0 --state-time 5 --retry-time 90 --workers 4 \
+            --output results/canonical/cyclic_cut_patch_results.json \
+            | tee results/canonical/cyclic_cut_patch_search.log
 
       - name: Write run manifest
         if: always()
@@ -126,11 +104,16 @@ jobs:
           if root.exists():
               for p in sorted(root.rglob('*')):
                   if p.is_file():
-                      files.append({'path':str(p),'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()})
+                      files.append({
+                          'path':str(p),
+                          'bytes':p.stat().st_size,
+                          'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),
+                      })
           manifest={
-              'workflow':'canonical-patch-search',
+              'workflow':'canonical-barnette-cyclic-cut-search',
               'plantri_command':'plantri -bc4dg 92d RES/10000',
-              'patch_solver':'PySAT Glucose4 forced-artificial-edge reduction plus iterative subtour cuts',
+              'patch_solver':'exact HiGHS MILP for Hamilton path and paired spanning-path boundary states',
+              'timeout_policy':'unknown; retry; never classify timeout as infeasible',
               'plantri_archive_sha256': pathlib.Path('plantri58.sha256').read_text().split()[0] if pathlib.Path('plantri58.sha256').exists() else None,
               'git_commit': subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
               'files':files,
@@ -143,7 +126,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: canonical-barnette-patch-search-${{ github.sha }}
+          name: canonical-barnette-cyclic-cut-${{ github.sha }}
           path: |
             results/canonical
             plantri58.sha256
