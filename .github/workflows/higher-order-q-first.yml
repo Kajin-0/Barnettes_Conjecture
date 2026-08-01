@@ -14,6 +14,18 @@ on:
       - source/**
       - requirements.txt
       - docs/runs/2026-08-01-higher-order-q-first.md
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/higher-order-q-first.yml
+      - search/higher_order_q_first.py
+      - search/sat_verify_q_candidates.py
+      - search/canonical_prepare.py
+      - search/cyclic_cut_patch_search.py
+      - source/**
+      - requirements.txt
+      - docs/runs/2026-08-01-higher-order-q-first.md
 
 permissions:
   contents: read
