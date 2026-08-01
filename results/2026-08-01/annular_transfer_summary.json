@@ -1,32 +1,17 @@
 {
   "summary": {
     "annuli_available": 2084,
-    "annuli_exact_tested": 200,
-    "complete_relations": 200,
-    "true_entries_per_9x9_relation": [26],
-    "relation_patterns": 12,
+    "annuli_tested": 200,
+    "witnessed_entries_per_9x9_relation": 26,
+    "labelled_relation_patterns": 12,
     "empty_pair_products": 0,
-    "minimum_pair_product_entries": 43
+    "minimum_witnessed_pair_product_entries": 43
   },
-  "size_distribution": {
-    "30": 20,
-    "32": 20,
-    "26": 20,
-    "36": 20,
-    "22": 20,
-    "40": 20,
-    "18": 20,
-    "44": 20,
-    "14": 16,
-    "12": 4,
-    "48": 20
-  },
-  "interpretation": {
-    "all_relations_complete": true,
-    "all_relations_same_cardinality": true,
-    "composition_contracts_reachability": false,
-    "smallest_pair_product_expands_from": 26,
-    "smallest_pair_product_expands_to": 43,
-    "empty_transfer_product_found": false
+  "validation_scope": {
+    "positive_entries_have_explicit_witnesses": true,
+    "negative_entries_independently_certified": false,
+    "relations_are_conservative_underapproximations": true,
+    "nonempty_products_are_robust_to_omitted_true_entries": true,
+    "exact_relation_cardinality_claimed": false
   }
 }
