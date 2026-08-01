@@ -4,8 +4,9 @@
 The SAT encoding uses selected-edge variables, exact degree constraints, a
 binary component assignment fixed by the requested terminal pairing, and lazy
 connectivity cuts. Positive models are independently validated as two spanning
-paths. If the accumulated relaxation is UNSAT, the solver proof is written and
-checked with drat-trim before the state is classified as a certified negative.
+paths. If the accumulated relaxation is UNSAT, the final CNF is solved again by
+an independent proof-producing solver and the resulting DRAT proof is checked
+with drat-trim before the state is classified as a certified negative.
 
 Because the accumulated CNF is a relaxation of the exact connected-pair-cover
 problem, a checked UNSAT proof is sufficient evidence that the requested Q
@@ -108,7 +109,13 @@ def write_proof(path: Path, proof: Any) -> int:
     return len(normalized)
 
 
-def solve_case(case: dict[str, Any], output_dir: Path, solver_name: str, drat_trim: str | None) -> dict[str, Any]:
+def solve_case(
+    case: dict[str, Any],
+    output_dir: Path,
+    solver_name: str,
+    drat_trim: str | None,
+    proof_solver: str | None,
+) -> dict[str, Any]:
     case_id = re.sub(r"[^A-Za-z0-9_.-]+", "_", case["case_id"])
     case_dir = output_dir / case_id
     case_dir.mkdir(parents=True, exist_ok=True)
@@ -153,7 +160,56 @@ def solve_case(case: dict[str, Any], output_dir: Path, solver_name: str, drat_tr
                 cnf_path = case_dir / "instance.cnf"
                 proof_path = case_dir / "proof.drat"
                 write_dimacs(cnf_path, clauses)
-                proof_lines = write_proof(proof_path, solver.get_proof())
+                if proof_path.exists():
+                    proof_path.unlink()
+
+                proof_generation = {
+                    "attempted": bool(proof_solver),
+                    "command": None,
+                    "returncode": None,
+                    "stdout": "",
+                    "stderr": "",
+                    "unsat_exit_code": False,
+                    "proof_bytes": 0,
+                }
+                if proof_solver:
+                    # CaDiCaL usage is `cadical [ dimacs [ proof ] ]`.
+                    # Its default proof format is binary; force textual DRAT so
+                    # the evidence is portable and directly checked by
+                    # drat-trim.
+                    command = [
+                        proof_solver,
+                        "--no-binary",
+                        str(cnf_path),
+                        str(proof_path),
+                    ]
+                    generated = subprocess.run(
+                        command,
+                        text=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        timeout=600,
+                        check=False,
+                    )
+                    proof_generation.update(
+                        {
+                            "command": command,
+                            "returncode": generated.returncode,
+                            "stdout": generated.stdout[-8000:],
+                            "stderr": generated.stderr[-8000:],
+                            "unsat_exit_code": generated.returncode == 20,
+                            "proof_bytes": (
+                                proof_path.stat().st_size if proof_path.exists() else 0
+                            ),
+                        }
+                    )
+                else:
+                    # Diagnostic fallback only. Some PySAT backends expose no
+                    # proof. This path can never certify a negative unless the
+                    # independent checker below accepts the resulting file.
+                    write_proof(proof_path, solver.get_proof())
+                    proof_generation["proof_bytes"] = proof_path.stat().st_size
+
                 verification = {
                     "attempted": bool(drat_trim),
                     "returncode": None,
@@ -161,7 +217,12 @@ def solve_case(case: dict[str, Any], output_dir: Path, solver_name: str, drat_tr
                     "stderr": "",
                     "verified": False,
                 }
-                if drat_trim and proof_lines:
+                if (
+                    drat_trim
+                    and proof_path.exists()
+                    and proof_path.stat().st_size > 0
+                    and (not proof_solver or proof_generation["unsat_exit_code"])
+                ):
                     process = subprocess.run(
                         [drat_trim, str(cnf_path), str(proof_path)],
                         text=True,
@@ -170,19 +231,25 @@ def solve_case(case: dict[str, Any], output_dir: Path, solver_name: str, drat_tr
                         timeout=600,
                         check=False,
                     )
-                    verification.update({
-                        "returncode": process.returncode,
-                        "stdout": process.stdout[-8000:],
-                        "stderr": process.stderr[-8000:],
-                        "verified": process.returncode == 0,
-                    })
-                classification = "certified_negative" if verification["verified"] else "provisional_negative"
+                    verification.update(
+                        {
+                            "returncode": process.returncode,
+                            "stdout": process.stdout[-8000:],
+                            "stderr": process.stderr[-8000:],
+                            "verified": process.returncode == 0,
+                        }
+                    )
+                classification = (
+                    "certified_negative"
+                    if verification["verified"]
+                    else "provisional_negative"
+                )
                 outcome = {
                     "classification": classification,
                     "sat": False,
-                    "proof_lines": proof_lines,
                     "cnf": str(cnf_path),
                     "proof": str(proof_path),
+                    "proof_generation": proof_generation,
                     "proof_verification": verification,
                 }
                 break
@@ -225,7 +292,9 @@ def solve_case(case: dict[str, Any], output_dir: Path, solver_name: str, drat_tr
                         for v in patch.neighbors(u)
                         if v not in component
                     ]
-                    membership_guard = [node_var[v] if zero_group else -node_var[v] for v in component]
+                    membership_guard = [
+                        node_var[v] if zero_group else -node_var[v] for v in component
+                    ]
                     clause = membership_guard + sorted(set(crossing))
                     key = tuple(sorted(clause))
                     if key not in known_cuts:
@@ -236,7 +305,10 @@ def solve_case(case: dict[str, Any], output_dir: Path, solver_name: str, drat_tr
                 outcome = {
                     "classification": "unknown",
                     "sat": True,
-                    "reason": "SAT model failed exact witness validation but yielded no new valid connectivity cut",
+                    "reason": (
+                        "SAT model failed exact witness validation but yielded "
+                        "no new valid connectivity cut"
+                    ),
                     "witness_validation": validation,
                 }
                 break
@@ -245,17 +317,21 @@ def solve_case(case: dict[str, Any], output_dir: Path, solver_name: str, drat_tr
                 solver.add_clause(clause)
             added_cut_clauses += len(new_clauses)
 
-    outcome.update({
-        "case_id": case["case_id"],
-        "state": case["state"],
-        "patch_n": patch.number_of_nodes(),
-        "patch_m": patch.number_of_edges(),
-        "rounds": rounds,
-        "base_and_cut_clauses": len(clauses),
-        "added_connectivity_cuts": added_cut_clauses,
-        "elapsed_s": time.time() - started,
-    })
-    (case_dir / "result.json").write_text(json.dumps(outcome, indent=2), encoding="utf-8")
+    outcome.update(
+        {
+            "case_id": case["case_id"],
+            "state": case["state"],
+            "patch_n": patch.number_of_nodes(),
+            "patch_m": patch.number_of_edges(),
+            "rounds": rounds,
+            "base_and_cut_clauses": len(clauses),
+            "added_connectivity_cuts": added_cut_clauses,
+            "elapsed_s": time.time() - started,
+        }
+    )
+    (case_dir / "result.json").write_text(
+        json.dumps(outcome, indent=2), encoding="utf-8"
+    )
     return outcome
 
 
@@ -265,6 +341,7 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--solver", default="g4")
     parser.add_argument("--drat-trim", default=None)
+    parser.add_argument("--proof-solver", default=None)
     parser.add_argument("--max-cases", type=int, default=100)
     args = parser.parse_args()
 
@@ -274,8 +351,21 @@ def main() -> None:
     started = time.time()
     results = []
     for index, case in enumerate(cases, 1):
-        print(json.dumps({"sat_case": index, "total": len(cases), "id": case["case_id"]}), flush=True)
-        results.append(solve_case(case, args.output_dir, args.solver, args.drat_trim))
+        print(
+            json.dumps(
+                {"sat_case": index, "total": len(cases), "id": case["case_id"]}
+            ),
+            flush=True,
+        )
+        results.append(
+            solve_case(
+                case,
+                args.output_dir,
+                args.solver,
+                args.drat_trim,
+                args.proof_solver,
+            )
+        )
 
     counts: dict[str, int] = {}
     for result in results:
@@ -285,9 +375,12 @@ def main() -> None:
         "cases_attempted": len(cases),
         "classification_counts": counts,
         "certified_missing_q_states": counts.get("certified_negative", 0),
-        "verified_false_milp_negatives_or_timeouts": counts.get("verified_positive", 0),
+        "verified_false_milp_negatives_or_timeouts": counts.get(
+            "verified_positive", 0
+        ),
         "elapsed_s": time.time() - started,
         "solver": args.solver,
+        "proof_solver": args.proof_solver,
         "python": platform.python_version(),
     }
     output = {"summary": summary, "results": results}
