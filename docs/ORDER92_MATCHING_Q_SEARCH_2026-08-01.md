@@ -79,17 +79,23 @@ The reduction should remain in the higher-order pipeline as the first screening 
 - `search/matching_q_screen.py`
 - `search/matching_q_deep.py`
 - `results/2026-08-01/order92_matching_q_summary.json`
-- `results/2026-08-01/order92_q_hardest71_witnesses.json.gz.b64`
 - `results/2026-08-01/order92_q_hardest71_validation.json`
+- `results/2026-08-01/order92_q_strongest_near_miss_witnesses.json.gz.b64`
 
-Reconstruct the witness JSON with:
+The full 142-witness local result had SHA-256:
+
+```text
+706496b3461df3deb580615cf656235da6b6e109af11a411820aa755a8a69b91
+```
+
+The repository includes the two exact witnesses for the strongest sampler near-miss. Reconstruct them with:
 
 ```bash
-base64 --decode results/2026-08-01/order92_q_hardest71_witnesses.json.gz.b64 | gzip --decompress > order92_q_hardest71_witnesses.json
+base64 --decode results/2026-08-01/order92_q_strongest_near_miss_witnesses.json.gz.b64 | gzip --decompress > order92_q_strongest_near_miss_witnesses.json
 ```
 
 Expected uncompressed SHA-256:
 
 ```text
-706496b3461df3deb580615cf656235da6b6e109af11a411820aa755a8a69b91
+67174b4503c67aaac791be242fffb51641d4d72bd4e28283bbb6bcfcf4d961d7
 ```
