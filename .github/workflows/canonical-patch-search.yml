@@ -9,6 +9,7 @@ on:
       - .github/workflows/canonical-patch-search.yml
       - search/canonical_prepare.py
       - search/sat_patch_library.py
+      - search/sat_patch_library_interruptible.py
   pull_request:
     branches:
       - main
@@ -16,6 +17,7 @@ on:
       - .github/workflows/canonical-patch-search.yml
       - search/canonical_prepare.py
       - search/sat_patch_library.py
+      - search/sat_patch_library_interruptible.py
 
 permissions:
   contents: read
@@ -106,7 +108,7 @@ jobs:
           PY
           )
           mkdir -p results/canonical/patch_search
-          python search/sat_patch_library.py \
+          python search/sat_patch_library_interruptible.py \
             --verified results/canonical/verified_canonical_92.json \
             --indices "$INDICES" --per-graph 4 \
             --state-time 15 --workers 4 --whole-time 120 \
@@ -128,7 +130,7 @@ jobs:
           manifest={
               'workflow':'canonical-patch-search',
               'plantri_command':'plantri -bc4dg 92d RES/10000',
-              'patch_solver':'PySAT forced-artificial-edge reduction plus iterative subtour cuts',
+              'patch_solver':'PySAT Glucose4 forced-artificial-edge reduction plus iterative subtour cuts',
               'plantri_archive_sha256': pathlib.Path('plantri58.sha256').read_text().split()[0] if pathlib.Path('plantri58.sha256').exists() else None,
               'git_commit': subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
               'files':files,
