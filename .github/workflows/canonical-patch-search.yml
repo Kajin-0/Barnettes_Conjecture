@@ -8,6 +8,12 @@ on:
     paths:
       - .github/workflows/canonical-patch-search.yml
       - search/canonical_prepare.py
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/canonical-patch-search.yml
+      - search/canonical_prepare.py
 
 permissions:
   contents: read
