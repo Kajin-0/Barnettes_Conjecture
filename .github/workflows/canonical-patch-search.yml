@@ -8,14 +8,14 @@ on:
     paths:
       - .github/workflows/canonical-patch-search.yml
       - search/canonical_prepare.py
-      - search/exact_patch_library.py
+      - search/sat_patch_library.py
   pull_request:
     branches:
       - main
     paths:
       - .github/workflows/canonical-patch-search.yml
       - search/canonical_prepare.py
-      - search/exact_patch_library.py
+      - search/sat_patch_library.py
 
 permissions:
   contents: read
@@ -40,7 +40,9 @@ jobs:
           cache: pip
 
       - name: Install Python dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install -r requirements.txt
+          pip install python-sat
 
       - name: Reconstruct exact-search sources
         run: python source/unpack_sources.py
@@ -83,7 +85,7 @@ jobs:
             --output results/canonical/verified_canonical_92.json \
             | tee results/canonical/ranking.log
 
-      - name: Exact-first heterogeneous patch search
+      - name: Exact SAT heterogeneous patch search
         shell: bash
         run: |
           set -euo pipefail
@@ -104,10 +106,10 @@ jobs:
           PY
           )
           mkdir -p results/canonical/patch_search
-          python search/exact_patch_library.py \
+          python search/sat_patch_library.py \
             --verified results/canonical/verified_canonical_92.json \
             --indices "$INDICES" --per-graph 4 \
-            --state-time 6 --workers 4 --whole-time 120 \
+            --state-time 15 --workers 4 --whole-time 120 \
             --output-dir results/canonical/patch_search \
             | tee results/canonical/patch_search/run.log
 
@@ -126,6 +128,7 @@ jobs:
           manifest={
               'workflow':'canonical-patch-search',
               'plantri_command':'plantri -bc4dg 92d RES/10000',
+              'patch_solver':'PySAT forced-artificial-edge reduction plus iterative subtour cuts',
               'plantri_archive_sha256': pathlib.Path('plantri58.sha256').read_text().split()[0] if pathlib.Path('plantri58.sha256').exists() else None,
               'git_commit': subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
               'files':files,
