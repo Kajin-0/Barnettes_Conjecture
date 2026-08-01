@@ -175,3 +175,39 @@ Prevent loss of research state when conversational or agent context is unavailab
 ### Rule going forward
 
 No material finding may remain only in chat history, terminal output, a local workspace, or an uncommitted scratch file. Important results and analytical pivots must be checkpointed to the repository immediately.
+
+---
+
+## 2026-08-01 — Fully autonomous repository operation
+
+**Status:** `verified`
+
+### Objective
+
+Remove any operational dependency on the repository owner and make continuation possible without manual branching, commits, pushes, pull-request administration, CI monitoring, artifact handling, or handoff maintenance.
+
+### Repository changes
+
+- added a mandatory autonomous-operation section to `AGENTS.md`;
+- defined the repository owner as project sponsor rather than routine operator;
+- assigned branch management, code changes, experiments, commits, publication, PR maintenance, CI follow-up, artifacts, documentation, and handoff to the active agent;
+- prohibited agents from transferring routine repository mechanics to the owner;
+- required agents to choose a durable alternative when a specific platform operation is unavailable;
+- updated `README.md` and `agent.md` so the autonomous model is visible from every entry point.
+
+### Operating rule
+
+The active agent owns the complete execution loop. The agent must not ask the owner to run commands, push changes, open or update pull requests, monitor workflows, upload evidence, or reconstruct state. Routine reversible research decisions should be made autonomously and checkpointed immediately.
+
+If direct merge capability is unavailable, the agent must keep the authoritative research branch and pull request complete and current rather than delegating the merge or publication process to the owner.
+
+### Evidence paths
+
+- `AGENTS.md`
+- `agent.md`
+- `README.md`
+- `docs/RESEARCH_LOG.md`
+
+### Next action
+
+Continue the higher-order Q-first campaign under the autonomous checkpoint protocol. Every material experimental phase must be committed, published, documented, and reflected in the active pull request by the agent.
