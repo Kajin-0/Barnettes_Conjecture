@@ -1,0 +1,140 @@
+name: Canonical Barnette patch search
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/adversarial-search-v2
+    paths:
+      - .github/workflows/canonical-patch-search.yml
+      - search/canonical_prepare.py
+
+permissions:
+  contents: read
+
+jobs:
+  canonical-search:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PYTHONHASHSEED: "0"
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+    steps:
+      - name: Check out search branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Reconstruct exact-search sources
+        run: python source/unpack_sources.py
+
+      - name: Download and compile official plantri 5.8
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            https://users.cecs.anu.edu.au/~bdm/plantri/plantri58.tar.gz \
+            --output plantri58.tar.gz
+          sha256sum plantri58.tar.gz | tee plantri58.sha256
+          tar xzf plantri58.tar.gz
+          make -C plantri58 plantri
+          ./plantri58/plantri 2>&1 | head -n 2 || true
+
+      - name: Generate canonical 92-vertex shards
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p results/canonical/raw
+          : > results/canonical/plantri.stderr
+          for residue in 0 137 911 2718 4093 6121 7351 9001; do
+            echo "Generating shard ${residue}/10000"
+            timeout 150 bash -c \
+              "./plantri58/plantri -bc4dg 92d ${residue}/10000 2>>results/canonical/plantri.stderr | head -n 300 > results/canonical/raw/shard_${residue}.g6" \
+              || true
+            wc -l results/canonical/raw/shard_${residue}.g6 || true
+          done
+          cat results/canonical/raw/*.g6 | LC_ALL=C sort -u > results/canonical/canonical_92.g6
+          wc -l results/canonical/canonical_92.g6
+
+      - name: Rank theorem-escaping candidates
+        shell: bash
+        run: |
+          set -euo pipefail
+          python search/canonical_prepare.py \
+            results/canonical/canonical_92.g6 \
+            --order 92 --trials 128 --top 8 --seed 20260801 \
+            --output results/canonical/verified_canonical_92.json \
+            | tee results/canonical/ranking.log
+
+      - name: Exact heterogeneous patch search
+        shell: bash
+        run: |
+          set -euo pipefail
+          COUNT=$(python - <<'PY'
+          import json
+          d=json.load(open('results/canonical/verified_canonical_92.json'))
+          print(len(d['results']))
+          PY
+          )
+          if [ "$COUNT" -lt 2 ]; then
+            echo "Fewer than two theorem-escaping candidates; exact patch search skipped." | tee results/canonical/patch_skip.log
+            exit 0
+          fi
+          INDICES=$(python - <<'PY'
+          import json
+          d=json.load(open('results/canonical/verified_canonical_92.json'))
+          print(','.join(str(i) for i in range(len(d['results']))))
+          PY
+          )
+          mkdir -p results/canonical/patch_search
+          python search/patch_gluing_search.py \
+            --verified results/canonical/verified_canonical_92.json \
+            --graph-indices "$INDICES" \
+            --sample-trials 4000 --sample-cycle-cap 120 \
+            --top-patches-per-graph 10 --candidate-gluings 24 \
+            --state-time 8 --whole-time 120 --seed 20260801 \
+            --output-dir results/canonical/patch_search \
+            | tee results/canonical/patch_search/run.log
+
+      - name: Write run manifest
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib, subprocess
+          root=pathlib.Path('results/canonical')
+          files=[]
+          if root.exists():
+              for p in sorted(root.rglob('*')):
+                  if p.is_file():
+                      files.append({'path':str(p),'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()})
+          manifest={
+              'workflow':'canonical-patch-search',
+              'plantri_command':'plantri -bc4dg 92d RES/10000',
+              'plantri_archive_sha256': pathlib.Path('plantri58.sha256').read_text().split()[0] if pathlib.Path('plantri58.sha256').exists() else None,
+              'git_commit': subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+              'files':files,
+          }
+          root.mkdir(parents=True,exist_ok=True)
+          (root/'manifest.json').write_text(json.dumps(manifest,indent=2))
+          PY
+
+      - name: Upload canonical-search evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: canonical-barnette-patch-search-${{ github.sha }}
+          path: |
+            results/canonical
+            plantri58.sha256
+          if-no-files-found: warn
+          retention-days: 30
