@@ -22,6 +22,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: q-sat-proof-regression-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   proof-regression:
     runs-on: ubuntu-latest
@@ -42,11 +46,19 @@ jobs:
       - name: Reconstruct exact-search sources
         run: python source/unpack_sources.py
 
-      - name: Build drat-trim
+      - name: Build independent proof toolchain
         run: |
+          set -euo pipefail
           git clone --depth 1 https://github.com/marijnheule/drat-trim.git tools/drat-trim
           make -C tools/drat-trim
           test -x tools/drat-trim/drat-trim
+
+          git clone --depth 1 https://github.com/arminbiere/cadical.git tools/cadical
+          cd tools/cadical
+          ./configure
+          make -j2
+          test -x build/cadical
+          build/cadical --version
 
       - name: Create one positive and one impossible Q case
         run: |
@@ -94,6 +106,7 @@ jobs:
             --input results/q-sat-regression/cases.json \
             --output-dir results/q-sat-regression/output \
             --solver g4 \
+            --proof-solver tools/cadical/build/cadical \
             --drat-trim tools/drat-trim/drat-trim \
             --max-cases 2 \
             | tee results/q-sat-regression/run.log
@@ -108,6 +121,8 @@ jobs:
           assert counts.get('verified_positive') == 1, counts
           assert counts.get('certified_negative') == 1, counts
           negative=[r for r in data['results'] if r['classification']=='certified_negative'][0]
+          assert negative['proof_generation']['unsat_exit_code'] is True
+          assert negative['proof_generation']['proof_bytes'] > 0
           assert negative['proof_verification']['verified'] is True
           print(json.dumps(data['summary'], indent=2))
           PY
