@@ -30,6 +30,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: higher-order-q-first-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   q-first:
     name: Q-first order ${{ matrix.order }}
