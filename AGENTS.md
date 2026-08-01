@@ -4,6 +4,32 @@ This file is the authoritative operational handoff for any agent continuing work
 
 Read this file before running experiments, changing search logic, interpreting solver output, or making mathematical claims.
 
+## Autonomous operation is mandatory
+
+This is an agent-operated research repository. The repository owner is the project sponsor, not a required operator in the execution loop.
+
+An agent continuing this work must independently perform all routine repository and research operations available through its tools, including:
+
+- inspect the repository, active branch, pull requests, issues, and CI status;
+- create or select an appropriate `agent/*` branch;
+- edit code, tests, workflows, reports, handoff files, and machine-readable results;
+- run or dispatch experiments and validation workflows;
+- create commits with descriptive messages;
+- push or publish every material checkpoint to GitHub;
+- create, update, and maintain pull requests;
+- monitor CI, inspect failures, apply corrections, rerun checks, and record outcomes;
+- publish hashes, manifests, witnesses, proof logs, and downloadable artifacts;
+- update `AGENTS.md`, `docs/RESEARCH_LOG.md`, technical reports, and PR-level summaries;
+- merge completed work when the available GitHub permissions and tools support merging and the repository's validation requirements are satisfied.
+
+Do **not** instruct the repository owner to run commands, create branches, commit files, push changes, open or update pull requests, monitor CI, upload artifacts, reconstruct context, or perform routine administrative work.
+
+Do **not** pause for approval before routine, reversible research operations. Make the strongest technically justified choice, preserve provenance, and checkpoint it. Ask for owner input only when a genuinely non-resolvable product-level decision is required, not for repository mechanics or standard research judgment.
+
+If a specific platform action is unavailable to the current agent, use the strongest available alternative that keeps the repository complete and immediately usable. For example, keep the authoritative research branch and PR current if direct merge capability is unavailable. Record the tooling limitation, but do not transfer the task to the owner.
+
+Never force-push, erase evidence, silently rewrite a retraction, or merge an unverified counterexample claim. Autonomy does not relax the proof and provenance requirements below.
+
 ## 1. Project objective
 
 Search computationally for a counterexample to Barnette's conjecture:
@@ -189,9 +215,11 @@ Commit or update a run specification containing:
 - expected output paths;
 - acceptance and rejection criteria.
 
+The agent must publish that specification itself. Owner action is not part of the checkpoint process.
+
 ### After every meaningful phase
 
-Create a repository checkpoint after any of the following:
+Create and publish a repository checkpoint after any of the following:
 
 - canonical generation completes;
 - filtering completes;
@@ -220,7 +248,7 @@ Each checkpoint must include, as applicable:
 
 ### Required files to keep synchronized
 
-After a material result, update:
+After a material result, the agent must update and publish:
 
 1. `docs/RESEARCH_LOG.md` with an append-only dated entry;
 2. the current technical report or a new dated report;
@@ -228,9 +256,9 @@ After a material result, update:
 4. this `AGENTS.md` file if the validated state, warning set, or next experiment changes;
 5. the active PR description or a PR comment when the result changes the review-level interpretation.
 
-### Commit discipline
+### Commit and PR discipline
 
-Use small, descriptive commits. Prefer one coherent research checkpoint per commit or short sequence of commits.
+Use small, descriptive commits. Prefer one coherent research checkpoint per commit or short sequence of commits. The agent is responsible for creating the commits, publishing them, maintaining the branch, and keeping the pull request current.
 
 Recommended prefixes:
 
@@ -293,17 +321,18 @@ Before extending the workflow to higher orders, preserve the order-92 job as a r
 
 ## 10. Immediate pickup checklist
 
-A new agent should:
+A new agent must complete this workflow autonomously:
 
 1. Read this file.
 2. Read `README.md`.
 3. Read `docs/CANONICAL_STRUCTURAL_SEARCH_2026-08-01.md`.
 4. Read `docs/RESEARCH_LOG.md` from the most recent entry backward.
 5. Inspect PR #1 and its latest checks.
-6. Confirm the working branch and uncommitted state before changing files.
+6. Confirm the working branch and repository state before changing files.
 7. Reproduce or inspect the order-92 regression before altering solver logic.
 8. Begin the next experiment from a committed run specification.
-9. Checkpoint all important findings immediately.
+9. Commit and publish all important findings immediately.
+10. Update the PR and CI state without requesting owner intervention.
 
 ## 11. Current stopping point
 
