@@ -1,0 +1,211 @@
+name: Order-94/98 pure-C4 fallback
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/order94-98-expansion-fallback
+    paths:
+      - .github/workflows/order94-98-expansion-fallback.yml
+      - search/expansion_order_fallback.py
+      - search/expansion_order_fallback_v2.py
+      - search/higher_order_q_first.py
+      - search/higher_order_q_first_v2.py
+      - search/sat_verify_q_candidates.py
+      - source/**
+      - requirements.txt
+      - docs/runs/2026-08-01-order94-98-expansion-fallback.md
+  pull_request:
+    branches:
+      - agent/adversarial-search-v2
+    paths:
+      - .github/workflows/order94-98-expansion-fallback.yml
+      - search/expansion_order_fallback.py
+      - search/expansion_order_fallback_v2.py
+      - search/higher_order_q_first.py
+      - search/higher_order_q_first_v2.py
+      - search/sat_verify_q_candidates.py
+      - source/**
+      - requirements.txt
+      - docs/runs/2026-08-01-order94-98-expansion-fallback.md
+
+permissions:
+  contents: read
+
+concurrency:
+  group: order94-98-expansion-fallback-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  expansion-fallback:
+    name: Pure-C4 fallback order ${{ matrix.order }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        order: [94, 98]
+    env:
+      PYTHONHASHSEED: "0"
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      ORDER: ${{ matrix.order }}
+      PLANTRI_SHA256: e78a944116fec9f2c9f5e484206276cc2b0043bae803e9815f4b2683614629b8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Reconstruct exact-search sources
+        run: python source/unpack_sources.py
+
+      - name: Build official generator and proof toolchain
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            https://users.cecs.anu.edu.au/~bdm/plantri/plantri58.tar.gz \
+            --output plantri58.tar.gz
+          echo "${PLANTRI_SHA256}  plantri58.tar.gz" | sha256sum --check
+          tar xzf plantri58.tar.gz
+          make -C plantri58 plantri
+
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git tools/drat-trim
+          make -C tools/drat-trim
+          test -x tools/drat-trim/drat-trim
+          git -C tools/drat-trim rev-parse HEAD | tee drat-trim.commit
+
+          git clone --depth 1 https://github.com/arminbiere/cadical.git tools/cadical
+          cd tools/cadical
+          ./configure
+          make -j2
+          test -x build/cadical
+          build/cadical --version
+          git rev-parse HEAD | tee ../../cadical.commit
+
+      - name: Generate complete small canonical seed library
+        run: |
+          set -euo pipefail
+          ROOT="results/order94-98-expansion-fallback/${ORDER}"
+          mkdir -p "${ROOT}/seeds"
+          for seed_order in 18 22 26 30; do
+            ./plantri58/plantri -bc4dg "${seed_order}d" \
+              > "${ROOT}/seeds/seed_${seed_order}.g6" \
+              2>> "${ROOT}/seed_generation.stderr"
+            wc -l "${ROOT}/seeds/seed_${seed_order}.g6"
+          done
+          cat "${ROOT}"/seeds/*.g6 | LC_ALL=C sort -u > "${ROOT}/small_seeds.g6"
+          test "$(wc -l < ${ROOT}/small_seeds.g6)" -gt 0
+
+      - name: Generate and exact-test pure-C4 target population
+        run: |
+          set -euo pipefail
+          ROOT="results/order94-98-expansion-fallback/${ORDER}"
+          python search/expansion_order_fallback_v2.py \
+            "${ROOT}/small_seeds.g6" \
+            --target "${ORDER}" --attempts 480 --matching-trials 256 \
+            --top 12 --workers 4 --ham-time 20 \
+            --seed 20260801 \
+            --output "${ROOT}/verified_expansion_${ORDER}.json" \
+            | tee "${ROOT}/expansion.log"
+
+      - name: Collision-safe Q-state search
+        run: |
+          set -euo pipefail
+          ROOT="results/order94-98-expansion-fallback/${ORDER}"
+          python search/higher_order_q_first_v2.py \
+            --verified "${ROOT}/verified_expansion_${ORDER}.json" \
+            --graphs 12 --patches-per-graph 320 \
+            --state-time 4 --retry-time 45 --workers 4 \
+            --output "${ROOT}/q_first_results.json" \
+            | tee "${ROOT}/q_first.log"
+
+      - name: Proof-check every nonpositive Q state
+        run: |
+          set -uo pipefail
+          ROOT="results/order94-98-expansion-fallback/${ORDER}"
+          mkdir -p "${ROOT}/sat-verification"
+          timeout 3600 python search/sat_verify_q_candidates.py \
+            --input "${ROOT}/q_first_results.json" \
+            --output-dir "${ROOT}/sat-verification" \
+            --solver g4 \
+            --proof-solver tools/cadical/build/cadical \
+            --drat-trim tools/drat-trim/drat-trim \
+            --max-cases 100 \
+            | tee "${ROOT}/sat_verification.log"
+          status=${PIPESTATUS[0]}
+          if [ "${status}" -eq 124 ]; then
+            echo "SAT verification timed out; unfinished cases remain unknown."
+          elif [ "${status}" -ne 0 ]; then
+            echo "SAT verification failed with status ${status}; unfinished cases remain unknown."
+          fi
+          exit 0
+
+      - name: Write summary and manifest
+        if: always()
+        run: |
+          python - <<'PY'
+          import hashlib,json,os,pathlib,platform,subprocess
+          import networkx,numpy,scipy
+          order=int(os.environ['ORDER'])
+          root=pathlib.Path(f'results/order94-98-expansion-fallback/{order}')
+          root.mkdir(parents=True,exist_ok=True)
+          expansion_path=root/f'verified_expansion_{order}.json'
+          q_path=root/'q_first_results.json'
+          sat_path=root/'sat-verification'/'sat_q_verification_summary.json'
+          expansion=json.loads(expansion_path.read_text()) if expansion_path.exists() else None
+          q=json.loads(q_path.read_text()) if q_path.exists() else None
+          sat=json.loads(sat_path.read_text()) if sat_path.exists() else None
+          summary={
+              'order':order,
+              'campaign':'pure-c4-expansion-fallback',
+              'canonical':False,
+              'expansion':expansion.get('summary') if expansion else None,
+              'q_first':q.get('summary') if q else None,
+              'sat_verification':sat.get('summary') if sat else None,
+              'certified_missing_q_states':sat.get('summary',{}).get('certified_missing_q_states',0) if sat else 0,
+              'counterexample_found':False,
+          }
+          (root/'ORDER_SUMMARY.json').write_text(json.dumps(summary,indent=2))
+          files=[]
+          for path in sorted(root.rglob('*')):
+              if path.is_file():
+                  files.append({'path':str(path),'bytes':path.stat().st_size,'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
+          manifest={
+              'campaign':'order94-98-pure-c4-expansion-fallback',
+              'order':order,
+              'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+              'plantri_archive_sha256':os.environ['PLANTRI_SHA256'],
+              'drat_trim_commit':pathlib.Path('drat-trim.commit').read_text().strip() if pathlib.Path('drat-trim.commit').exists() else None,
+              'cadical_commit':pathlib.Path('cadical.commit').read_text().strip() if pathlib.Path('cadical.commit').exists() else None,
+              'software':{'python':platform.python_version(),'networkx':networkx.__version__,'numpy':numpy.__version__,'scipy':scipy.__version__},
+              'classification_policy':{
+                  'whole_graph_positive':'independently validated cycle witness',
+                  'Q_positive':'independently validated two-path witness',
+                  'negative':'final-CNF CaDiCaL proof accepted by drat-trim',
+                  'timeout_or_failure':'unknown'
+              },
+              'files':files,
+          }
+          (root/'manifest.json').write_text(json.dumps(manifest,indent=2))
+          print(json.dumps(summary,indent=2))
+          PY
+
+      - name: Upload expansion-fallback evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: order-${{ matrix.order }}-expansion-fallback-${{ github.sha }}
+          path: |
+            results/order94-98-expansion-fallback/${{ matrix.order }}
+            plantri58.tar.gz
+            drat-trim.commit
+            cadical.commit
+          if-no-files-found: error
+          retention-days: 30
