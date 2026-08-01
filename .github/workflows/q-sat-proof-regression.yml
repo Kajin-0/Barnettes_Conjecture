@@ -1,0 +1,122 @@
+name: Q-state SAT proof regression
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/adversarial-search-v2
+    paths:
+      - .github/workflows/q-sat-proof-regression.yml
+      - search/sat_verify_q_candidates.py
+      - source/**
+      - requirements.txt
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/q-sat-proof-regression.yml
+      - search/sat_verify_q_candidates.py
+      - source/**
+      - requirements.txt
+
+permissions:
+  contents: read
+
+jobs:
+  proof-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONHASHSEED: "0"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Reconstruct exact-search sources
+        run: python source/unpack_sources.py
+
+      - name: Build drat-trim
+        run: |
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git tools/drat-trim
+          make -C tools/drat-trim
+          test -x tools/drat-trim/drat-trim
+
+      - name: Create one positive and one impossible Q case
+        run: |
+          mkdir -p results/q-sat-regression
+          python - <<'PY'
+          import json
+          import networkx as nx
+          graph = nx.cycle_graph(4)
+          graph6 = nx.to_graph6_bytes(graph, header=False).decode().strip()
+          spec = {
+              'graph_index': 0,
+              'removed_edge': [1000, 1001],
+              'terminals': [0, 1, 2, 3],
+              'terminal_owner': [10, 11, 12, 13],
+              'terminal_colors': [0, 1, 0, 1],
+          }
+          cases = {
+              'candidate_cases': [
+                  {
+                      'case_id': 'cycle4-positive-Q01_23',
+                      'classification': 'regression',
+                      'parent_graph6': graph6,
+                      'patch_nodes': [0, 1, 2, 3],
+                      'spec': spec,
+                      'state': 'Q01_23',
+                      'milp_result': None,
+                  },
+                  {
+                      'case_id': 'cycle4-impossible-Q02_13',
+                      'classification': 'regression',
+                      'parent_graph6': graph6,
+                      'patch_nodes': [0, 1, 2, 3],
+                      'spec': spec,
+                      'state': 'Q02_13',
+                      'milp_result': None,
+                  },
+              ]
+          }
+          open('results/q-sat-regression/cases.json', 'w').write(json.dumps(cases, indent=2))
+          PY
+
+      - name: Run independent SAT and proof verification
+        run: |
+          python search/sat_verify_q_candidates.py \
+            --input results/q-sat-regression/cases.json \
+            --output-dir results/q-sat-regression/output \
+            --solver g4 \
+            --drat-trim tools/drat-trim/drat-trim \
+            --max-cases 2 \
+            | tee results/q-sat-regression/run.log
+
+      - name: Assert regression outcomes
+        run: |
+          python - <<'PY'
+          import json
+          path='results/q-sat-regression/output/sat_q_verification_summary.json'
+          data=json.load(open(path))
+          counts=data['summary']['classification_counts']
+          assert counts.get('verified_positive') == 1, counts
+          assert counts.get('certified_negative') == 1, counts
+          negative=[r for r in data['results'] if r['classification']=='certified_negative'][0]
+          assert negative['proof_verification']['verified'] is True
+          print(json.dumps(data['summary'], indent=2))
+          PY
+
+      - name: Upload proof regression evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: q-sat-proof-regression-${{ github.sha }}
+          path: results/q-sat-regression
+          if-no-files-found: error
+          retention-days: 30
