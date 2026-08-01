@@ -5,11 +5,9 @@
 
 ## 1. Search objective
 
-This campaign replaced expansion-history sampling with canonical generation at the first order beyond the published exhaustive frontier and then attacked Hamiltonicity through exact separator-state calculations.
+This campaign replaced expansion-history sampling with canonical generation at the first order beyond the published exhaustive frontier and attacked Hamiltonicity through four-terminal separator states.
 
-The structural target was a pair or sequence of planar bipartite cubic patches whose Hamiltonian boundary states are incompatible. Such an incompatibility would prove non-Hamiltonicity compositionally, before a whole-graph SAT or MILP calculation.
-
-All negative state decisions reported here are solver-proven infeasibility decisions. Timeouts were classified as unknown and rerun at a longer budget.
+The target was a pair or sequence of planar bipartite cubic patches whose Hamiltonian boundary states are incompatible. Such an incompatibility would prove non-Hamiltonicity compositionally before a whole-graph SAT calculation.
 
 ## 2. Canonical 92-vertex input
 
@@ -23,7 +21,7 @@ generation form:
 plantri -bc4dg 92d RES/10000
 ```
 
-The run sampled eight disjoint `res/mod` classes and retained the first 300 graph6 outputs from each class:
+Eight disjoint `res/mod` classes were sampled, taking the first 300 graph6 outputs from each class.
 
 | Quantity | Result |
 |---|---:|
@@ -40,156 +38,134 @@ The eight retained graphs produced no Hamiltonian complement in 128 randomized p
 
 ## 3. Four-terminal state model
 
-A cyclic 4-edge cut exposes four terminals on each side. The Hamiltonian boundary signature contains:
+A cyclic 4-edge cut exposes four terminals on each side. Its Hamiltonian boundary signature contains:
 
 - six possible one-path labels `Pij`;
 - three possible two-path labels `Qij_kl`.
 
-For a planar bipartite patch with four boundary terminals, at most six of the nine labels are structurally possible:
+For a planar bipartite four-terminal patch, only six of the nine labels can be structurally feasible:
 
 - four `P` states survive bipartition parity;
 - two `Q` states survive noncrossing planarity.
 
 A six-state signature is therefore maximal.
 
-Each state was solved with an exact mixed-integer formulation enforcing the required terminal degrees and either one connected spanning path or two connected spanning paths with the specified pairing.
+## 4. Clean CI result: every natural cut side was maximal
 
-## 4. Edge-deletion four-poles
-
-For the strongest canonical graph, deleting the endpoints of each of its 138 edges gives a four-terminal patch.
-
-| Quantity | Result |
-|---|---:|
-| Edge-deletion patches | 138 |
-| Complete exact signatures | 138 |
-| Maximal six-state signatures | 138 |
-| Restrictive signatures | 0 |
-
-This establishes that adjacent-vertex deletion is too flexible on this graph and is not a promising gadget source.
-
-## 5. Natural cyclic 4-edge-cut patches
-
-Separating 4-cycles were enumerated in the planar dual. Each corresponds to a cyclic 4-edge cut in the primal graph.
+Separating 4-cycles were enumerated in the planar dual. Each corresponds to a cyclic 4-edge cut in the primal graph. A clean GitHub Actions rerun used SciPy 1.18.0 and validated every feasible state by an explicit selected-edge witness.
 
 | Quantity | Result |
 |---|---:|
 | Cyclic 4-edge cuts | 647 |
 | Cut sides tested | 1,294 |
-| Complete exact signatures after retry | 1,294 |
-| Maximal six-state signatures | 1,292 |
-| Exact five-state signatures | 2 |
-| Missing two-path `Q` states | 0 |
+| Complete signatures | 1,294 |
+| Maximal six-state signatures | 1,294 |
+| Restrictive signatures | 0 |
+| Unresolved signatures | 0 |
 
 Across all planar, bipartition-preserving dihedral gluings:
 
 | Compatible state-pair count | Number of patch-map pairs |
 |---:|---:|
-| 6 | 1,278,132 |
-| 5 | 5,315 |
-| 4 | 9 |
-| 0 | **0** |
+| 6 | 1,283,456 |
+| 0–5 | 0 |
 
-Thus all **1,283,456** exact patch-map comparisons had a Hamiltonian-compatible state pair.
+Thus every one of the **1,283,456** patch-map comparisons had all six structurally possible compatible state pairs.
 
-### 5.1 Restrictive patch `c156-s0`
-
-This 40-vertex patch has exact signature
+The CI artifact SHA-256 is:
 
 ```text
-P01, P03, P12, Q01_23, Q03_12
+fd22be4b51b1d950391f8349697d5842e59b5b58f60b246aef9d08a57f5d104d
 ```
 
-The otherwise allowed state `P23` is infeasible. The MILP returned solver status 2 (`infeasible`), not a timeout.
+## 5. Solver discrepancy and retraction
 
-### 5.2 Restrictive patch `c446-s1`
+An earlier local run under SciPy 1.17.0 reported two apparent five-state patches. Those negative decisions were incorrect.
 
-This 40-vertex patch has exact signature
+The clean SciPy 1.18.0 rerun produced explicit spanning-path witnesses for both supposedly missing states:
 
-```text
-P03, P12, P23, Q01_23, Q03_12
-```
+- patch `c156-s0`, state `P23`;
+- patch `c446-s1`, state `P01`.
 
-The otherwise allowed state `P01` is infeasible, again with solver status 2.
+Each witness was independently checked to satisfy:
 
-These are the first exact local Hamiltonian restrictions found in the project. They are genuine structural obstructions, but they are not sufficient to form a counterexample because both patches retain both noncrossing `Q` states.
+1. every selected edge belongs to the patch;
+2. exactly `n-1` edges are selected;
+3. the selected subgraph is connected;
+4. the requested two terminals have degree one;
+5. every other patch vertex has degree two.
 
-## 6. Partial composition of restrictive patches
+Therefore the earlier `HiGHS Status 8: Infeasible` results were false infeasibility reports. The restrictive-patch claim and certificates were retracted.
 
-The two restrictive four-poles were partially composed by joining two boundary terminals from each patch and leaving four terminals exposed. All adjacent boundary arcs, both orientations, and all ordered parent choices were attempted.
+This changes the validation policy:
 
-| Quantity | Result |
-|---|---:|
-| Composition parameter combinations | 128 |
-| Valid planar bipartite four-poles | 10 |
-| Complete exact signatures | 10 |
-| Maximal six-state signatures | 10 |
-| Incompatible final gluings | 0 |
+> A single MILP solver's infeasibility status is not accepted as mathematical evidence. Any future negative boundary state must be confirmed by an independent formulation or a proof-producing SAT solver.
 
-The two missing path states did not compound. Every valid partial composition restored the maximal signature.
+Positive witnesses remain conclusive because they can be checked directly without trusting the solver's status code.
 
-## 7. Two-interface annular transfer relations
+## 6. Edge-deletion four-poles
 
-Nested cyclic 4-cuts define annular patches with an inner and outer four-terminal boundary. These patches can contain correlations that are invisible in either one-boundary marginal.
+Deleting the endpoints of each of the strongest graph's 138 edges produced 138 four-terminal patches. All 138 had explicit witnesses for all six structurally possible states.
 
-For each annulus, every pair of boundary states was represented by forced virtual cap edges and tested by an exact connected degree-2 MILP. This produces a Boolean 9-by-9 transfer relation.
+This reinforces the conclusion that adjacent-vertex deletion is too flexible to supply a counterexample gadget in this sample.
 
-| Quantity | Result |
-|---|---:|
-| Candidate annuli in strongest graph | 2,084 |
-| Diverse annuli exact-tested | 200 |
-| Complete relations | 200 |
-| True entries per relation | 26 for every annulus |
-| Distinct labelled relation patterns | 12 |
-| Empty two-annulus products | 0 |
-| Minimum true entries in a two-annulus product | 43 |
+## 7. Partial and annular composition
 
-Rather than shrinking, pairwise composition expanded the reachable relation from 26 entries to at least 43. No two-interface obstruction appeared in this sample.
+The previously tested partial compositions all had positive witnesses for maximal six-state signatures. That positive conclusion is unaffected by the false-negative issue.
+
+For nested-cut annuli, 200 conservative 9-by-9 transfer relations were constructed from positively witnessed entries. Even under this potentially strict under-approximation:
+
+- every relation contained 26 witnessed entries;
+- 12 labelled relation patterns occurred;
+- no product of two tested relations was empty;
+- the smallest product contained 43 witnessed entries.
+
+Because false negatives can only omit true entries, non-emptiness of these conservative products is robust. The exact cardinalities should not be treated as proof-complete until negative entries are independently certified.
 
 ## 8. Interpretation
 
-The search found a real local phenomenon but not a viable counterexample mechanism:
+The strongest conclusion is negative for this construction route:
 
-1. Almost every natural four-pole was maximally Hamiltonian-flexible.
-2. The two restrictive four-poles each lost only one path state.
-3. Every two-path state remained feasible.
-4. Partial composition erased, rather than amplified, the restrictions.
-5. The tested annular transfer relations were nonempty and compositionally expansive.
+1. Every natural cyclic-4-cut side of the leading canonical 92-vertex graph was maximally Hamiltonian-flexible.
+2. Every planar gluing retained all six compatible boundary states.
+3. Edge-deletion four-poles were also maximal.
+4. Conservative annular relations remained nonempty under composition.
 
-This strongly disfavors a counterexample assembled from ordinary cyclic-4-cut pieces at order 92. It does not prove that no such construction exists outside the sample or at larger order.
+This strongly disfavors a counterexample assembled from ordinary cyclic-4-cut pieces of this graph. It does not exclude restrictive patches in other canonical graphs or at larger orders.
 
 ## 9. Highest-value next experiment
 
-The next search should optimize directly for **missing `Q` states** and sparse annular relations.
+The next search should move to orders 94, 96, 98 and 100 and optimize directly for missing noncrossing `Q` states or sparse annular transfer relations.
 
 Recommended pipeline:
 
-1. Generate canonical cyclically 4-connected Barnette graphs at orders 94, 96, 98, and 100 with plantri shards.
+1. Generate canonical cyclically 4-connected Barnette graphs with plantri shards.
 2. Enumerate natural cyclic 4-cut sides.
-3. Solve the two noncrossing `Q` states first; discard patches where both are feasible.
-4. Retain any patch with a solver-proven missing `Q` state.
-5. Compute full signatures only for that extreme tail.
-6. Build exact annular transfer relations around nested restrictive cuts.
-7. Search the Boolean transfer semigroup for an empty product.
-8. Construct the resulting graph and verify cubicity, bipartiteness, planarity, and 3-connectivity.
-9. Encode whole-graph Hamiltonicity with proof logging and independently check an LRAT or DRAT UNSAT certificate.
+3. Search the two noncrossing `Q` states first.
+4. Validate every positive state by an explicit edge witness.
+5. Treat every apparent negative state as provisional.
+6. Re-encode provisional negatives with an independent SAT formulation.
+7. Require an independently checked UNSAT proof before retaining a missing-state gadget.
+8. Build exact annular transfer relations only from verified state decisions.
+9. Search the Boolean transfer semigroup for an empty product.
+10. If a full graph is produced, verify the Barnette predicates and whole-graph Hamiltonicity with proof logging.
 
-The primary progress metric is no longer graph order or MILP runtime. It is
+The primary progress metric is:
 
 ```text
-number of exact patches missing a noncrossing Q state
+number of independently certified missing noncrossing Q states
 ```
 
-because a one-cut incompatibility is effectively impossible while both patches retain both `Q` states.
+At present that number is **zero**.
 
 ## 10. Reproducibility
 
 The repository branch includes:
 
 - canonical plantri preparation;
-- exact cyclic-cut patch enumeration;
-- exact boundary-state MILPs;
-- restrictive patch certificates;
-- compact annular transfer summaries;
-- the GitHub Actions workflow and artifact manifests.
+- natural cyclic-cut enumeration;
+- boundary-state witness generation;
+- the solver-discrepancy regression record;
+- the successful GitHub Actions workflow and artifact manifest.
 
-No timeout is represented as an infeasibility result.
+No current counterexample or certified restrictive four-pole is claimed.
