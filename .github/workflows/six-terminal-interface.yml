@@ -12,6 +12,16 @@ on:
       - source/**
       - requirements.txt
       - docs/runs/2026-08-01-six-terminal-interface.md
+  pull_request:
+    branches:
+      - agent/adversarial-search-v2
+    paths:
+      - .github/workflows/six-terminal-interface.yml
+      - search/six_terminal_matching_screen.py
+      - search/canonical_prepare.py
+      - source/**
+      - requirements.txt
+      - docs/runs/2026-08-01-six-terminal-interface.md
 
 permissions:
   contents: read
