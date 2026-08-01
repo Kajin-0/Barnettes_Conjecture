@@ -1,0 +1,44 @@
+{
+  "date": "2026-08-01",
+  "classification": "retracted_false_infeasibility",
+  "cause": "solver-version-dependent HiGHS MILP infeasibility status contradicted by explicit valid witness",
+  "local_environment": {"scipy": "1.17.0"},
+  "ci_environment": {
+    "scipy": "1.18.0",
+    "artifact_sha256": "fd22be4b51b1d950391f8349697d5842e59b5b58f60b246aef9d08a57f5d104d"
+  },
+  "cases": {
+    "c156-s0": {
+      "state": "P23",
+      "terminals": [5, 8, 71, 66],
+      "endpoints": [66, 71],
+      "earlier_status": "infeasible solver_status=2",
+      "witness_edges": [[0,1],[0,2],[1,5],[2,6],[3,4],[3,7],[4,8],[5,8],[6,10],[7,11],[10,14],[11,15],[14,19],[15,20],[18,23],[18,24],[19,24],[20,25],[23,29],[25,31],[26,30],[26,31],[29,34],[30,35],[34,38],[35,39],[38,42],[39,43],[42,47],[43,48],[47,53],[48,54],[53,58],[54,59],[58,62],[59,63],[62,66],[63,67],[67,71]],
+      "validation": {
+        "all_edges_in_patch": true,
+        "edge_count": 39,
+        "expected_edge_count": 39,
+        "connected": true,
+        "terminal_degrees": {"66": 1, "71": 1},
+        "all_internal_degree_two": true,
+        "valid_spanning_path": true
+      }
+    },
+    "c446-s1": {
+      "state": "P01",
+      "terminals": [38, 43, 64, 61],
+      "endpoints": [38, 43],
+      "earlier_status": "infeasible solver_status=2",
+      "witness_edges": [[38,42],[42,47],[43,48],[47,53],[48,54],[53,58],[54,59],[58,62],[59,63],[61,64],[61,65],[62,66],[63,67],[64,68],[65,69],[66,70],[67,71],[68,72],[69,73],[70,74],[71,75],[72,76],[73,78],[74,79],[75,80],[76,82],[77,82],[77,83],[78,84],[79,85],[80,86],[81,87],[81,88],[83,88],[84,89],[85,89],[86,90],[87,91],[90,91]],
+      "validation": {
+        "all_edges_in_patch": true,
+        "edge_count": 39,
+        "expected_edge_count": 39,
+        "connected": true,
+        "terminal_degrees": {"38": 1, "43": 1},
+        "all_internal_degree_two": true,
+        "valid_spanning_path": true
+      }
+    }
+  }
+}
