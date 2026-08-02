@@ -2,9 +2,9 @@ name: Grand Barnette Q-first v3 campaign
 
 on:
   workflow_dispatch:
-  push:
+  pull_request:
     branches:
-      - agent/adversarial-search-v2
+      - main
     paths:
       - .github/workflows/grand-q-first-v3.yml
 
@@ -12,8 +12,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: grand-q-first-v3-${{ github.sha }}
-  cancel-in-progress: false
+  group: grand-q-first-v3
+  cancel-in-progress: true
 
 env:
   PYTHONHASHSEED: "0"
