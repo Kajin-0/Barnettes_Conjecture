@@ -211,3 +211,91 @@ If direct merge capability is unavailable, the agent must keep the authoritative
 ### Next action
 
 Continue the higher-order Q-first campaign under the autonomous checkpoint protocol. Every material experimental phase must be committed, published, documented, and reflected in the active pull request by the agent.
+
+---
+
+## 2026-08-01 — Higher-order Q-first v2 campaign
+
+**Status:** `verified` for positive witnesses at orders 96 and 100; `unknown` for generation at orders 94 and 98  
+**Counterexample found:** No
+
+### Objective
+
+Search higher canonical orders for a natural cyclic-4-cut side lacking one of the two noncrossing two-path boundary states.
+
+### Corrected driver
+
+The collision-safe v2 driver names every patch using:
+
+```text
+g<graph-index>-c<cut-index>-s<side-index>
+```
+
+and asserts key uniqueness before and after parallel execution.
+
+### Verified scope
+
+Order 96:
+
+- 4,800 canonical graphs sampled;
+- 4,740 escaped the implemented sufficient-condition filters;
+- 6 parent graphs analyzed;
+- 8,620 natural cut-side patches available in those parents;
+- 1,920 patch sides selected;
+- 3,840 Q states attempted;
+- 3,840 explicit positive witnesses independently validated;
+- 0 provisional negatives;
+- 0 unknowns.
+
+Order 100:
+
+- 4,800 canonical graphs sampled;
+- 4,738 escaped the implemented sufficient-condition filters;
+- 6 parent graphs analyzed;
+- 9,112 natural cut-side patches available in those parents;
+- 1,920 patch sides selected;
+- 3,840 Q states attempted;
+- 3,840 explicit positive witnesses independently validated;
+- 0 provisional negatives;
+- 0 unknowns.
+
+Combined verified result:
+
+```text
+7,680 / 7,680 attempted Q states positively witnessed
+```
+
+### Generation failures
+
+Orders 94 and 98 produced no flushed graph6 record in twelve sparse `RES/10000` classes before the 240-second per-class timeout. The jobs failed closed before ranking or Q-state analysis.
+
+These are computational generation failures and have no negative mathematical interpretation. Both orders remain unresolved by this campaign.
+
+### Reproduction
+
+- workflow run ID: `30702896816`;
+- order-96 artifact ID: `8819552108`;
+- order-96 artifact SHA-256: `ac2e219a86811b11fc646b9d5b012eac55e0a2b1f2db5b89d693c62ff675d591`;
+- order-100 artifact ID: `8819569587`;
+- order-100 artifact SHA-256: `0b4cfbab9b08c896dedc76404c01f56845597d404cc6fc2f3067f246aaad9188`.
+
+### Interpretation
+
+The ordinary missing-Q-state mechanism appears substantially rarer than expected. The campaign did not cover all available cut sides or all sampled parents, so it does not establish universal Q-flexibility.
+
+The stronger continuation is dual-track:
+
+1. complete and broaden natural-cut Q-state coverage, including repaired generation at orders 94 and 98;
+2. escalate to multi-interface annular transfer correlations, which can remain restrictive even when every one-boundary marginal is full.
+
+### Evidence paths
+
+- `docs/HIGHER_ORDER_Q_FIRST_V2_2026-08-01.md`
+- `results/2026-08-01/higher_order_q_first_v2_summary.json`
+- `.github/workflows/higher-order-q-first-v2.yml`
+- `search/higher_order_q_first_v2.py`
+- `search/sat_verify_q_candidates.py`
+
+### Next action
+
+Repair sparse generation using an output-flushing plantri wrapper and lower-modulus adaptive shards. In parallel, expand the verified orders to all natural cut sides in a broader parent set and implement a reproducible multi-interface transfer search.
