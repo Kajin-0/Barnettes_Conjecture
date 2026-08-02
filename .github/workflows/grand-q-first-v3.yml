@@ -1,0 +1,465 @@
+name: Grand Barnette Q-first v3 campaign
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/adversarial-search-v2
+    paths:
+      - .github/workflows/grand-q-first-v3.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: grand-q-first-v3-${{ github.sha }}
+  cancel-in-progress: false
+
+env:
+  PYTHONHASHSEED: "0"
+  OMP_NUM_THREADS: "1"
+  OPENBLAS_NUM_THREADS: "1"
+  MKL_NUM_THREADS: "1"
+  PLANTRI_SHA256: e78a944116fec9f2c9f5e484206276cc2b0043bae803e9815f4b2683614629b8
+
+jobs:
+  broad-complete:
+    name: Complete natural-cut Q coverage order ${{ matrix.order }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        order: [96, 100]
+    env:
+      ORDER: ${{ matrix.order }}
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install pinned dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python - <<'PY'
+          import networkx, numpy, scipy, pysat
+          print('networkx', networkx.__version__)
+          print('numpy', numpy.__version__)
+          print('scipy', scipy.__version__)
+          print('python-sat', pysat.__version__)
+          PY
+
+      - name: Reconstruct exact-search sources
+        run: python source/unpack_sources.py
+
+      - name: Build flushed official plantri 5.8
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            https://users.cecs.anu.edu.au/~bdm/plantri/plantri58.tar.gz \
+            --output plantri58.tar.gz
+          echo "${PLANTRI_SHA256}  plantri58.tar.gz" | sha256sum --check
+          tar xzf plantri58.tar.gz
+          python - <<'PY'
+          from pathlib import Path
+          path=Path('plantri58/plantri.c')
+          text=path.read_text()
+          old='''        if (dswitch) (*write_dual_graph)(outfile,doflip);\n        else         (*write_graph)(outfile,doflip);'''
+          new=old+'\n        fflush(outfile);'
+          if old not in text:
+              raise SystemExit('plantri output hook not found')
+          path.write_text(text.replace(old,new,1))
+          PY
+          sha256sum plantri58/plantri.c | tee plantri-flush-source.sha256
+          gcc -O4 plantri58/plantri.c -o plantri58/plantri-flush
+          test -x plantri58/plantri-flush
+
+      - name: Build independent proof toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git tools/drat-trim
+          make -C tools/drat-trim
+          test -x tools/drat-trim/drat-trim
+          git -C tools/drat-trim rev-parse HEAD | tee drat-trim.commit
+
+          git clone --depth 1 https://github.com/arminbiere/cadical.git tools/cadical
+          cd tools/cadical
+          ./configure
+          make -j2
+          test -x build/cadical
+          build/cadical --version
+          git rev-parse HEAD | tee ../../cadical.commit
+
+      - name: Generate distributed canonical sample
+        id: generate
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="results/grand-q-first-v3/broad/${ORDER}"
+          mkdir -p "${ROOT}/raw"
+          : > "${ROOT}/plantri.stderr"
+          : > "${ROOT}/generation_status.tsv"
+          for residue in 0 137 911 1597 2718 4093 5003 6121 7351 8123 9001 9733; do
+            OUT="${ROOT}/raw/shard_${residue}.g6"
+            echo "Generating order ${ORDER}, shard ${residue}/10000"
+            set +e
+            timeout 300 bash -o pipefail -c \
+              "./plantri58/plantri-flush -bc4dg ${ORDER}d ${residue}/10000 2>>${ROOT}/plantri.stderr | head -n 400 > ${OUT}"
+            status=$?
+            set -e
+            count=$(wc -l < "${OUT}")
+            printf '%s\t%s\t%s\n' "${residue}" "${status}" "${count}" >> "${ROOT}/generation_status.tsv"
+          done
+          cat "${ROOT}"/raw/*.g6 | LC_ALL=C sort -u > "${ROOT}/canonical_${ORDER}.g6"
+          COUNT=$(wc -l < "${ROOT}/canonical_${ORDER}.g6")
+          echo "unique canonical records: ${COUNT}"
+          echo "count=${COUNT}" >> "${GITHUB_OUTPUT}"
+          test "${COUNT}" -gt 0
+
+      - name: Filter and rank twelve parent graphs
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="results/grand-q-first-v3/broad/${ORDER}"
+          python search/canonical_prepare.py \
+            "${ROOT}/canonical_${ORDER}.g6" \
+            --order "${ORDER}" --trials 256 --top 12 --seed "$((20260801 + ORDER + 3000))" \
+            --output "${ROOT}/verified_canonical_${ORDER}.json" \
+            | tee "${ROOT}/ranking.log"
+
+      - name: Test every natural cut-side Q state
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="results/grand-q-first-v3/broad/${ORDER}"
+          python search/higher_order_q_first_v2.py \
+            --verified "${ROOT}/verified_canonical_${ORDER}.json" \
+            --graphs 12 --patches-per-graph 1000000 \
+            --state-time 4 --retry-time 60 --workers 4 \
+            --output "${ROOT}/q_first_results.json" \
+            | tee "${ROOT}/q_first.log"
+
+      - name: Independently verify every nonpositive Q case
+        shell: bash
+        run: |
+          set -uo pipefail
+          ROOT="results/grand-q-first-v3/broad/${ORDER}"
+          mkdir -p "${ROOT}/sat-verification"
+          timeout 7200 python search/sat_verify_q_candidates.py \
+            --input "${ROOT}/q_first_results.json" \
+            --output-dir "${ROOT}/sat-verification" \
+            --solver g4 \
+            --proof-solver tools/cadical/build/cadical \
+            --drat-trim tools/drat-trim/drat-trim \
+            --max-cases 1000 \
+            | tee "${ROOT}/sat_verification.log"
+          status=${PIPESTATUS[0]}
+          if [ "${status}" -eq 124 ]; then
+            echo "SAT verification timed out; unfinished cases remain unknown."
+          elif [ "${status}" -ne 0 ]; then
+            echo "SAT verification failed with status ${status}; unfinished cases remain unknown."
+          fi
+          exit 0
+
+      - name: Write broad summary and manifest
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, pathlib, platform, subprocess
+          import networkx, numpy, scipy
+          try:
+              import pysat
+              pysat_version=pysat.__version__
+          except Exception:
+              pysat_version=None
+          order=int(os.environ['ORDER'])
+          root=pathlib.Path(f'results/grand-q-first-v3/broad/{order}')
+          root.mkdir(parents=True,exist_ok=True)
+          q_path=root/'q_first_results.json'
+          sat_path=root/'sat-verification'/'sat_q_verification_summary.json'
+          q=json.loads(q_path.read_text()) if q_path.exists() else None
+          sat=json.loads(sat_path.read_text()) if sat_path.exists() else None
+          summary={
+              'campaign':'grand-q-first-v3-broad',
+              'order':order,
+              'q_first':q.get('summary') if q else None,
+              'sat_verification':sat.get('summary') if sat else None,
+              'certified_missing_q_states':sat.get('summary',{}).get('certified_missing_q_states',0) if sat else 0,
+              'counterexample_found':False,
+          }
+          (root/'ORDER_SUMMARY.json').write_text(json.dumps(summary,indent=2))
+          files=[]
+          for path in sorted(root.rglob('*')):
+              if path.is_file():
+                  files.append({'path':str(path),'bytes':path.stat().st_size,'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
+          manifest={
+              'campaign':'grand-q-first-v3-broad',
+              'order':order,
+              'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+              'plantri_archive_sha256':os.environ['PLANTRI_SHA256'],
+              'plantri_patched_source_sha256':pathlib.Path('plantri-flush-source.sha256').read_text().split()[0] if pathlib.Path('plantri-flush-source.sha256').exists() else None,
+              'plantri_command':f'plantri-flush -bc4dg {order}d RES/10000',
+              'drat_trim_commit':pathlib.Path('drat-trim.commit').read_text().strip() if pathlib.Path('drat-trim.commit').exists() else None,
+              'cadical_commit':pathlib.Path('cadical.commit').read_text().strip() if pathlib.Path('cadical.commit').exists() else None,
+              'software':{'python':platform.python_version(),'networkx':networkx.__version__,'numpy':numpy.__version__,'scipy':scipy.__version__,'python_sat':pysat_version},
+              'classification_policy':{
+                  'positive':'independently validated selected-edge witness',
+                  'negative':'CaDiCaL final-CNF UNSAT proof accepted by drat-trim',
+                  'timeout_or_failure':'unknown',
+              },
+              'files':files,
+          }
+          (root/'manifest.json').write_text(json.dumps(manifest,indent=2))
+          print(json.dumps(summary,indent=2))
+          PY
+
+      - name: Upload broad-search evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: grand-q-first-v3-broad-order-${{ matrix.order }}-${{ github.sha }}
+          path: |
+            results/grand-q-first-v3/broad/${{ matrix.order }}
+            plantri58.tar.gz
+            plantri-flush-source.sha256
+            drat-trim.commit
+            cadical.commit
+          if-no-files-found: warn
+          retention-days: 30
+
+  hard-order-shard:
+    name: Repaired order ${{ matrix.order }} residue ${{ matrix.residue }}/64
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        order: [94, 98]
+        residue: [0, 7, 15, 23, 31, 39, 47, 55]
+    env:
+      ORDER: ${{ matrix.order }}
+      RESIDUE: ${{ matrix.residue }}
+      MODULUS: 64
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install pinned dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Reconstruct exact-search sources
+        run: python source/unpack_sources.py
+
+      - name: Build flushed official plantri 5.8
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            https://users.cecs.anu.edu.au/~bdm/plantri/plantri58.tar.gz \
+            --output plantri58.tar.gz
+          echo "${PLANTRI_SHA256}  plantri58.tar.gz" | sha256sum --check
+          tar xzf plantri58.tar.gz
+          python - <<'PY'
+          from pathlib import Path
+          path=Path('plantri58/plantri.c')
+          text=path.read_text()
+          old='''        if (dswitch) (*write_dual_graph)(outfile,doflip);\n        else         (*write_graph)(outfile,doflip);'''
+          new=old+'\n        fflush(outfile);'
+          if old not in text:
+              raise SystemExit('plantri output hook not found')
+          path.write_text(text.replace(old,new,1))
+          PY
+          sha256sum plantri58/plantri.c | tee plantri-flush-source.sha256
+          gcc -O4 plantri58/plantri.c -o plantri58/plantri-flush
+          test -x plantri58/plantri-flush
+
+      - name: Generate repaired canonical shard
+        id: generate
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="results/grand-q-first-v3/hard/${ORDER}/residue-${RESIDUE}"
+          mkdir -p "${ROOT}/raw"
+          OUT="${ROOT}/raw/shard_${RESIDUE}_of_${MODULUS}.g6"
+          set +e
+          timeout 5400 bash -o pipefail -c \
+            "./plantri58/plantri-flush -X -bc4dg ${ORDER}d ${RESIDUE}/${MODULUS} 2>${ROOT}/plantri.stderr | head -n 160 > ${OUT}"
+          status=$?
+          set -e
+          count=$(wc -l < "${OUT}")
+          python - <<PY
+          import json, pathlib
+          pathlib.Path('${ROOT}/generation_summary.json').write_text(json.dumps({
+              'order':int('${ORDER}'),
+              'residue':int('${RESIDUE}'),
+              'modulus':int('${MODULUS}'),
+              'process_status':int('${status}'),
+              'graph6_records':int('${count}'),
+              'classification':'generated' if int('${count}')>0 else 'unknown_generation',
+              'mathematical_interpretation':None,
+          },indent=2))
+          PY
+          echo "count=${count}" >> "${GITHUB_OUTPUT}"
+          if [ "${count}" -gt 0 ]; then
+            echo "has_graphs=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "has_graphs=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Filter and rank shard parents
+        if: steps.generate.outputs.has_graphs == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="results/grand-q-first-v3/hard/${ORDER}/residue-${RESIDUE}"
+          python search/canonical_prepare.py \
+            "${ROOT}/raw/shard_${RESIDUE}_of_${MODULUS}.g6" \
+            --order "${ORDER}" --trials 256 --top 2 --seed "$((20260801 + ORDER * 100 + RESIDUE))" \
+            --output "${ROOT}/verified_canonical_${ORDER}.json" \
+            | tee "${ROOT}/ranking.log"
+
+      - name: Build proof toolchain for nonempty shard
+        if: steps.generate.outputs.has_graphs == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git tools/drat-trim
+          make -C tools/drat-trim
+          test -x tools/drat-trim/drat-trim
+          git -C tools/drat-trim rev-parse HEAD | tee drat-trim.commit
+
+          git clone --depth 1 https://github.com/arminbiere/cadical.git tools/cadical
+          cd tools/cadical
+          ./configure
+          make -j2
+          test -x build/cadical
+          build/cadical --version
+          git rev-parse HEAD | tee ../../cadical.commit
+
+      - name: Test every natural cut-side Q state in shard parents
+        if: steps.generate.outputs.has_graphs == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="results/grand-q-first-v3/hard/${ORDER}/residue-${RESIDUE}"
+          python search/higher_order_q_first_v2.py \
+            --verified "${ROOT}/verified_canonical_${ORDER}.json" \
+            --graphs 2 --patches-per-graph 1000000 \
+            --state-time 4 --retry-time 60 --workers 4 \
+            --output "${ROOT}/q_first_results.json" \
+            | tee "${ROOT}/q_first.log"
+
+      - name: Independently verify every nonpositive shard case
+        if: steps.generate.outputs.has_graphs == 'true'
+        shell: bash
+        run: |
+          set -uo pipefail
+          ROOT="results/grand-q-first-v3/hard/${ORDER}/residue-${RESIDUE}"
+          mkdir -p "${ROOT}/sat-verification"
+          timeout 7200 python search/sat_verify_q_candidates.py \
+            --input "${ROOT}/q_first_results.json" \
+            --output-dir "${ROOT}/sat-verification" \
+            --solver g4 \
+            --proof-solver tools/cadical/build/cadical \
+            --drat-trim tools/drat-trim/drat-trim \
+            --max-cases 1000 \
+            | tee "${ROOT}/sat_verification.log"
+          status=${PIPESTATUS[0]}
+          if [ "${status}" -eq 124 ]; then
+            echo "SAT verification timed out; unfinished cases remain unknown."
+          elif [ "${status}" -ne 0 ]; then
+            echo "SAT verification failed with status ${status}; unfinished cases remain unknown."
+          fi
+          exit 0
+
+      - name: Write shard manifest
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, pathlib, platform, subprocess
+          import networkx, numpy, scipy
+          try:
+              import pysat
+              pysat_version=pysat.__version__
+          except Exception:
+              pysat_version=None
+          order=int(os.environ['ORDER']); residue=int(os.environ['RESIDUE']); modulus=int(os.environ['MODULUS'])
+          root=pathlib.Path(f'results/grand-q-first-v3/hard/{order}/residue-{residue}')
+          root.mkdir(parents=True,exist_ok=True)
+          generation_path=root/'generation_summary.json'
+          q_path=root/'q_first_results.json'
+          sat_path=root/'sat-verification'/'sat_q_verification_summary.json'
+          generation=json.loads(generation_path.read_text()) if generation_path.exists() else None
+          q=json.loads(q_path.read_text()) if q_path.exists() else None
+          sat=json.loads(sat_path.read_text()) if sat_path.exists() else None
+          summary={
+              'campaign':'grand-q-first-v3-hard-shard',
+              'order':order,
+              'residue':residue,
+              'modulus':modulus,
+              'generation':generation,
+              'q_first':q.get('summary') if q else None,
+              'sat_verification':sat.get('summary') if sat else None,
+              'certified_missing_q_states':sat.get('summary',{}).get('certified_missing_q_states',0) if sat else 0,
+              'counterexample_found':False,
+          }
+          (root/'SHARD_SUMMARY.json').write_text(json.dumps(summary,indent=2))
+          files=[]
+          for path in sorted(root.rglob('*')):
+              if path.is_file():
+                  files.append({'path':str(path),'bytes':path.stat().st_size,'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
+          manifest={
+              'campaign':'grand-q-first-v3-hard-shard',
+              'order':order,
+              'residue':residue,
+              'modulus':modulus,
+              'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+              'plantri_archive_sha256':os.environ['PLANTRI_SHA256'],
+              'plantri_patched_source_sha256':pathlib.Path('plantri-flush-source.sha256').read_text().split()[0] if pathlib.Path('plantri-flush-source.sha256').exists() else None,
+              'plantri_command':f'plantri-flush -X -bc4dg {order}d {residue}/{modulus}',
+              'drat_trim_commit':pathlib.Path('drat-trim.commit').read_text().strip() if pathlib.Path('drat-trim.commit').exists() else None,
+              'cadical_commit':pathlib.Path('cadical.commit').read_text().strip() if pathlib.Path('cadical.commit').exists() else None,
+              'software':{'python':platform.python_version(),'networkx':networkx.__version__,'numpy':numpy.__version__,'scipy':scipy.__version__,'python_sat':pysat_version},
+              'classification_policy':{
+                  'positive':'independently validated selected-edge witness',
+                  'negative':'CaDiCaL final-CNF UNSAT proof accepted by drat-trim',
+                  'timeout_or_failure':'unknown',
+              },
+              'files':files,
+          }
+          (root/'manifest.json').write_text(json.dumps(manifest,indent=2))
+          print(json.dumps(summary,indent=2))
+          PY
+
+      - name: Upload repaired shard evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: grand-q-first-v3-order-${{ matrix.order }}-residue-${{ matrix.residue }}-${{ github.sha }}
+          path: |
+            results/grand-q-first-v3/hard/${{ matrix.order }}/residue-${{ matrix.residue }}
+            plantri58.tar.gz
+            plantri-flush-source.sha256
+            drat-trim.commit
+            cadical.commit
+          if-no-files-found: warn
+          retention-days: 30
