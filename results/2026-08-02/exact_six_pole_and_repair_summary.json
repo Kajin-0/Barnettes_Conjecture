@@ -1,0 +1,101 @@
+{
+  "date_utc": "2026-08-02",
+  "status": "verified_positive_witnesses_and_exhaustive_local_state_decisions",
+  "counterexample_found": false,
+  "certified_three_edge_obstruction": {
+    "graph_order": 100,
+    "source_index": 489,
+    "principal_case": {
+      "x": [14, 18],
+      "y": [10, 17],
+      "z": [5, 11],
+      "claim": "no Hamiltonian cycle contains x while avoiding both y and z"
+    },
+    "proof_cases": 6,
+    "proof_method": "CaDiCaL UNSAT proof independently accepted by drat-trim",
+    "workflow_run_id": 30750008325,
+    "artifact_id": 8834131003,
+    "artifact_sha256": "0aab9f4cdcd8ed61467f2a11de3d764e2dfc410b61b28a48ada61581ca9c1da1"
+  },
+  "exact_six_pole_languages": {
+    "state_space_per_pole": 75,
+    "solver": "independent exhaustive perfect-matching recursion with closed-subtour pruning",
+    "call_budget_per_state": 100000000,
+    "unknown_states": 0,
+    "poles": {
+      "A": {"positive": 26, "exact_negative": 49},
+      "B": {"positive": 26, "exact_negative": 49},
+      "C": {"positive": 26, "exact_negative": 49}
+    },
+    "result_sha256": "4c167dd746a9afb4ecee982fd989dc141d5b577df0921f3e503d478b1a856863",
+    "correction": "Pole C contained one positive state omitted from an earlier positive underapproximation: mask 63 with pairing (0,1)(2,5)(3,4). All composition calculations were regenerated from the exact languages."
+  },
+  "five_pole_near_counterexamples": {
+    "composition_type": "AABCC",
+    "random_terminal_permutations_screened": 100000,
+    "exact_zero_target_languages": 9818,
+    "legal_copy_connected": 2597,
+    "planar": 122,
+    "planar_with_target_edges_cofacial": 65,
+    "vertex_connectivity_of_all_planar_zero_language_graphs": 2,
+    "interpretation": "These graphs have an exact missing X+e- boundary trace but fail Barnette 3-connectivity only."
+  },
+  "selected_connectivity_repair_family": {
+    "source_near_counterexample_index": 2,
+    "source_separator": [17, 400],
+    "source_component_sizes": [99, 399],
+    "target_x": [5, 110],
+    "target_e": [11, 105],
+    "operation": "oriented separator-crossing C4 expansion",
+    "generated_repairs": 655,
+    "validated_barnette_repairs": 655,
+    "predicate_checks": ["simple", "cubic", "bipartite", "planar", "3-connected"],
+    "classification": "all retain an explicit X+e- Hamiltonian-compatible witness",
+    "classes": {
+      "C3-C4 internal edges": {
+        "repairs": 359,
+        "positive": 359,
+        "method": "exact outside-state contraction to one 204-vertex spanning-path problem per repair; explicit selected-edge flow-MILP witnesses independently validated",
+        "result_sha256": "3ae1b9a35a08e8527eb86aa8d49c129b4014e572085e02064045acc399c81a5b"
+      },
+      "B2-C4 internal edges": {
+        "repairs": 126,
+        "positive": 126,
+        "method": "simplest exact outside closure plus exhaustive complement-matching Hamiltonian-cycle search",
+        "result_sha256": "59959cb6c466c1096ff58c635d7d1883c06ebc50ccbcc4b42f14b9c69ba3c7ca"
+      },
+      "A0-C4 internal edges": {
+        "repairs": 52,
+        "positive": 52,
+        "method": "five exhaustive spanning-path witnesses and 47 independently validated flow-MILP path witnesses",
+        "exact_prefix_sha256": "05aea490f290d857962be8eb7802ac157c2bc91de0a22207592f8144f678f204",
+        "milp_remainder_sha256": "1bd38d71cbcf5a4173319b9ec0f5a46a5cbf0512435622539c9192c5b73ee396"
+      },
+      "A1-C4 internal edges": {
+        "repairs": 87,
+        "positive": 87,
+        "outside_closures_tested": 14,
+        "positive_closures_per_repair_histogram": {"6": 42, "9": 45},
+        "method": "exhaustive complement-matching search on every exact outside closure"
+      },
+      "glue-edge repairs": {
+        "repairs": 31,
+        "positive": 31,
+        "subclasses": {
+          "C4 plus glue B2-C3": 14,
+          "C4 plus glue A0-B2": 14,
+          "C4 plus glue A1-C3": 3
+        },
+        "outside_closures_per_subclass": 4,
+        "method": "exact three-pole supercomponent closure enumeration and exhaustive complement-matching search"
+      }
+    }
+  },
+  "validation_policy": {
+    "positive": "explicit selected-edge witness checked for graph-edge membership, edge count, degree constraints, connectivity, and required terminal behavior",
+    "local_negative": "accepted only from complete exhaustive recursion with no budget abort; no local negative from this repair family survives all outside closures",
+    "final_counterexample_negative": "would require independent proof-producing whole-graph SAT and checked DRAT/LRAT proof"
+  },
+  "next_action": "Apply the same exact connectivity-repair pipeline to the remaining 64 cofacial five-pole near-counterexamples, rank separator geometries by closure sparsity, and immediately proof-check any repair with no compatible outside closure.",
+  "counterexample_found": false
+}
