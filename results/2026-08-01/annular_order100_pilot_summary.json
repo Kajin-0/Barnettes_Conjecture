@@ -1,0 +1,159 @@
+{
+  "date_utc": "2026-08-01",
+  "classification": "verified_positive_witnesses_only",
+  "input": {
+    "order": 100,
+    "parent_graph_index": 0,
+    "q_first_artifact_id": 8819569587,
+    "q_first_artifact_sha256": "0b4cfbab9b08c896dedc76404c01f56845597d404cc6fc2f3067f246aaad9188"
+  },
+  "parameters": {
+    "graphs": 1,
+    "annuli": 12,
+    "state_time_s": 3,
+    "workers": 4,
+    "local_scipy": "1.17.0"
+  },
+  "summary": {
+    "graphs": 1,
+    "annuli": 12,
+    "state_pairs_attempted": 432,
+    "classification_counts": {
+      "provisional_negative": 245,
+      "verified_positive": 187
+    },
+    "positive_cardinality_histogram": {
+      "16": 9,
+      "13": 2,
+      "17": 1
+    },
+    "minimum_positive_cardinality": 13,
+    "maximum_positive_cardinality": 17,
+    "distinct_positive_patterns": 7,
+    "composed_q_witness_validations": {
+      "valid": 95
+    },
+    "provisional_or_unknown_cases": 245,
+    "elapsed_s": 54.42478346824646,
+    "counterexample_found": false
+  },
+  "validation_policy": {
+    "positive": "selected real annulus edges plus forced abstract boundary edges form a connected degree-2 spanning multigraph",
+    "end_to_end_q": "replace abstract core edges with prior independently validated Q witnesses and the four real cut edges; verify predicted outer path-cover state",
+    "negative": "provisional only; SciPy 1.17.0 infeasibility is not accepted"
+  },
+  "relations": [
+    {
+      "annulus_id": "g0-a000",
+      "inner_key": "g0-c101-s1",
+      "outer_key": "g0-c782-s0",
+      "annulus_n": 34,
+      "positive_cardinality": 16,
+      "positive_pattern_sha256": "5575249ad6b5c6d476f95c7f83ec424f5d58da909d6d82b8c5c48dbba7e14aef",
+      "composed_q_witnesses_validated": 8
+    },
+    {
+      "annulus_id": "g0-a001",
+      "inner_key": "g0-c101-s1",
+      "outer_key": "g0-c783-s0",
+      "annulus_n": 32,
+      "positive_cardinality": 13,
+      "positive_pattern_sha256": "c3b85cd3b0f9381672afe50b882b7c612882d42f211ad7d181c93394c10b7243",
+      "composed_q_witnesses_validated": 7
+    },
+    {
+      "annulus_id": "g0-a002",
+      "inner_key": "g0-c103-s1",
+      "outer_key": "g0-c782-s0",
+      "annulus_n": 36,
+      "positive_cardinality": 16,
+      "positive_pattern_sha256": "601e5ccacfbf2f98ca70514bea848707f30b139bfe418c85fe0bf74332b2ff13",
+      "composed_q_witnesses_validated": 8
+    },
+    {
+      "annulus_id": "g0-a003",
+      "inner_key": "g0-c102-s0",
+      "outer_key": "g0-c785-s0",
+      "annulus_n": 30,
+      "positive_cardinality": 16,
+      "positive_pattern_sha256": "42788e36b6b09204d8a6a6a4974e85707e5d8e4d2b4f78cca0d84408b7a1897c",
+      "composed_q_witnesses_validated": 8
+    },
+    {
+      "annulus_id": "g0-a004",
+      "inner_key": "g0-c105-s1",
+      "outer_key": "g0-c782-s0",
+      "annulus_n": 38,
+      "positive_cardinality": 16,
+      "positive_pattern_sha256": "5575249ad6b5c6d476f95c7f83ec424f5d58da909d6d82b8c5c48dbba7e14aef",
+      "composed_q_witnesses_validated": 8
+    },
+    {
+      "annulus_id": "g0-a005",
+      "inner_key": "g0-c100-s0",
+      "outer_key": "g0-c785-s0",
+      "annulus_n": 28,
+      "positive_cardinality": 16,
+      "positive_pattern_sha256": "1425fd4c5f93b94b9e7967359db551d28414aca877b4622036c5d4eba3a35c00",
+      "composed_q_witnesses_validated": 8
+    },
+    {
+      "annulus_id": "g0-a006",
+      "inner_key": "g0-c106-s1",
+      "outer_key": "g0-c782-s0",
+      "annulus_n": 40,
+      "positive_cardinality": 16,
+      "positive_pattern_sha256": "601e5ccacfbf2f98ca70514bea848707f30b139bfe418c85fe0bf74332b2ff13",
+      "composed_q_witnesses_validated": 8
+    },
+    {
+      "annulus_id": "g0-a007",
+      "inner_key": "g0-c100-s0",
+      "outer_key": "g0-c784-s0",
+      "annulus_n": 26,
+      "positive_cardinality": 13,
+      "positive_pattern_sha256": "6d0e100a5ddfd26e6bfdeda0079ec95e1df21f61b3e384fe5722a2da99510a34",
+      "composed_q_witnesses_validated": 7
+    },
+    {
+      "annulus_id": "g0-a008",
+      "inner_key": "g0-c108-s1",
+      "outer_key": "g0-c782-s0",
+      "annulus_n": 42,
+      "positive_cardinality": 16,
+      "positive_pattern_sha256": "5575249ad6b5c6d476f95c7f83ec424f5d58da909d6d82b8c5c48dbba7e14aef",
+      "composed_q_witnesses_validated": 8
+    },
+    {
+      "annulus_id": "g0-a009",
+      "inner_key": "g0-c126-s1",
+      "outer_key": "g0-c795-s0",
+      "annulus_n": 24,
+      "positive_cardinality": 17,
+      "positive_pattern_sha256": "360cf4e5fb7c6c6a47c70c5e2a78be19e71a61df9a8fa259ea80dfcdf954442c",
+      "composed_q_witnesses_validated": 9
+    },
+    {
+      "annulus_id": "g0-a010",
+      "inner_key": "g0-c110-s1",
+      "outer_key": "g0-c782-s0",
+      "annulus_n": 44,
+      "positive_cardinality": 16,
+      "positive_pattern_sha256": "601e5ccacfbf2f98ca70514bea848707f30b139bfe418c85fe0bf74332b2ff13",
+      "composed_q_witnesses_validated": 8
+    },
+    {
+      "annulus_id": "g0-a011",
+      "inner_key": "g0-c131-s0",
+      "outer_key": "g0-c782-s0",
+      "annulus_n": 22,
+      "positive_cardinality": 16,
+      "positive_pattern_sha256": "42788e36b6b09204d8a6a6a4974e85707e5d8e4d2b4f78cca0d84408b7a1897c",
+      "composed_q_witnesses_validated": 8
+    }
+  ],
+  "full_result_sha256": "d7f03a463908701791a40dbba84b5036ee9b0c0a0a19be7ce039d508eb27ff83",
+  "full_result_gzip_sha256": "b4be88ae1d67e86297713e614ad5320ea8ea76f0b5e20b27dc1292290bc8aa50",
+  "counterexample_found": false,
+  "interpretation": "The selected annuli have 13 to 17 positively witnessed transitions on their 6x6 realizable boundary domains. Ninety-five Q-input transitions were independently expanded and validated end to end. No negative transfer entry is certified."
+}
