@@ -1,341 +1,315 @@
 # Agent Handoff and Research Protocol
 
-This file is the authoritative operational handoff for any agent continuing work in this repository.
+This file defines the mandatory operating protocol for every agent continuing work in this repository.
 
-Read this file before running experiments, changing search logic, interpreting solver output, or making mathematical claims.
+## Read order
 
-## Autonomous operation is mandatory
+Before running experiments, changing search logic, interpreting solver output, or making mathematical claims, read:
+
+1. `AGENTS.md` — operating and validation rules;
+2. `docs/CURRENT_STATE.md` — single canonical mutable snapshot of the current research state;
+3. the newest entries in `docs/RESEARCH_LOG.md` — append-only chronology;
+4. PR #1, its latest commit, comments, and workflow state.
+
+`docs/CURRENT_STATE.md` is the authoritative answer to “where the project is now.” It must never be allowed to lag behind the newest material result.
+
+## 1. Autonomous operation is mandatory
 
 This is an agent-operated research repository. The repository owner is the project sponsor, not a required operator in the execution loop.
 
-An agent continuing this work must independently perform all routine repository and research operations available through its tools, including:
+The active agent must independently perform all routine repository and research operations available through its tools, including:
 
-- inspect the repository, active branch, pull requests, issues, and CI status;
+- inspect branches, pull requests, issues, commits, files, and CI;
 - create or select an appropriate `agent/*` branch;
-- edit code, tests, workflows, reports, handoff files, and machine-readable results;
+- edit code, tests, workflows, reports, state files, and machine-readable results;
 - run or dispatch experiments and validation workflows;
 - create commits with descriptive messages;
-- push or publish every material checkpoint to GitHub;
-- create, update, and maintain pull requests;
-- monitor CI, inspect failures, apply corrections, rerun checks, and record outcomes;
-- publish hashes, manifests, witnesses, proof logs, and downloadable artifacts;
-- update `AGENTS.md`, `docs/RESEARCH_LOG.md`, technical reports, and PR-level summaries;
-- merge completed work when the available GitHub permissions and tools support merging and the repository's validation requirements are satisfied.
+- publish every material checkpoint;
+- maintain the authoritative pull request;
+- inspect failures, apply corrections, rerun checks, and record outcomes;
+- publish hashes, manifests, witnesses, proof logs, and artifacts;
+- keep the repository immediately usable by the next agent.
 
-Do **not** instruct the repository owner to run commands, create branches, commit files, push changes, open or update pull requests, monitor CI, upload artifacts, reconstruct context, or perform routine administrative work.
+Do not ask the repository owner to run commands, create branches, commit, push, open or update pull requests, monitor CI, upload evidence, or reconstruct context.
 
-Do **not** pause for approval before routine, reversible research operations. Make the strongest technically justified choice, preserve provenance, and checkpoint it. Ask for owner input only when a genuinely non-resolvable product-level decision is required, not for repository mechanics or standard research judgment.
+Do not pause for approval before routine, reversible research operations. Make the strongest technically justified choice, preserve provenance, and checkpoint it. Ask for owner input only when a genuinely non-resolvable project-level decision is required.
 
-If a specific platform action is unavailable to the current agent, use the strongest available alternative that keeps the repository complete and immediately usable. For example, keep the authoritative research branch and PR current if direct merge capability is unavailable. Record the tooling limitation, but do not transfer the task to the owner.
+Never force-push, erase evidence, silently rewrite a retraction, or merge an unverified counterexample claim.
 
-Never force-push, erase evidence, silently rewrite a retraction, or merge an unverified counterexample claim. Autonomy does not relax the proof and provenance requirements below.
-
-## 1. Project objective
+## 2. Project objective
 
 Search computationally for a counterexample to Barnette's conjecture:
 
 > Every cubic, 3-connected, bipartite planar graph is Hamiltonian.
 
-The project must remain reproducible and proof-oriented. A graph is not a counterexample unless:
+A graph is not a counterexample unless:
 
-1. all Barnette-class predicates are independently verified;
+1. simplicity, cubicity, bipartiteness, planarity, and at least 3-connectivity are independently verified;
 2. non-Hamiltonicity is established exactly;
 3. the negative result has a machine-checkable certificate or independently checked proof log;
-4. all source graphs, parameters, software versions, hashes, and transformations are recorded in the repository.
+4. all source graphs, parameters, software versions, hashes, and transformations are recorded.
 
-Timeouts, solver failures, and heuristic misses are always **unknown**, never negative evidence.
+Timeouts, interrupted computations, heuristic misses, malformed cases, and solver failures are always `unknown`.
 
-## 2. Current repository state
+## 3. Canonical repository state
 
-Active research branch:
+Authoritative branch:
 
 ```text
 agent/adversarial-search-v2
 ```
 
-Active draft pull request:
+Authoritative pull request:
 
 ```text
-PR #1: Canonical Barnette search: all tested cyclic-cut patches maximal at order 92
+PR #1
 ```
 
-Primary technical report:
+Canonical current-state snapshot:
 
 ```text
-docs/CANONICAL_STRUCTURAL_SEARCH_2026-08-01.md
+docs/CURRENT_STATE.md
 ```
 
-Chronological checkpoint log:
+Append-only history:
 
 ```text
 docs/RESEARCH_LOG.md
 ```
 
-Machine-readable results:
+Dated machine-readable evidence:
 
 ```text
-results/2026-08-01/
+results/YYYY-MM-DD/
 ```
 
-Reproducible workflow:
+The active agent must verify that `docs/CURRENT_STATE.md` matches the newest commits, reports, result files, PR comments, and workflow results before beginning new work.
+
+## 4. Mandatory state-retention invariant
+
+A material insight is not considered incorporated until the active agent has completed every applicable part of this transaction:
+
+1. update `docs/CURRENT_STATE.md` with:
+   - the finding;
+   - confidence label;
+   - quantitative metrics;
+   - evidence paths and hashes;
+   - interpretation;
+   - limitations;
+   - resulting strategic change;
+   - next action;
+2. append a dated entry to `docs/RESEARCH_LOG.md`;
+3. publish machine-readable evidence under `results/YYYY-MM-DD/` when computation produced data;
+4. update or add the relevant technical report;
+5. update the authoritative PR description or add a checkpoint comment;
+6. commit and publish the changes.
+
+No material finding may exist only in:
+
+- chat history;
+- private reasoning;
+- terminal output;
+- a local workspace;
+- an Actions log;
+- a PR comment;
+- an auxiliary branch;
+- an uncommitted result file.
+
+PR comments and chat summaries are discovery aids, not durable state.
+
+## 5. When the current-state snapshot must be updated
+
+Update `docs/CURRENT_STATE.md` immediately after any of the following:
+
+- a new exact positive or certified negative result;
+- a solver discrepancy or retraction;
+- an exact language correction;
+- a new extreme candidate that changes prioritization;
+- completion or elimination of a construction family;
+- a workflow resolving with material data;
+- a change in the strongest next experiment;
+- discovery of stranded branch evidence or missing provenance;
+- a new theorem-level structural insight;
+- a strategy being retired or reinstated;
+- a counterexample candidate being assembled;
+- any result that a new agent would need to avoid repeating work or making a false claim.
+
+Do not defer snapshot updates until the end of a long session when the interpretation has already changed.
+
+## 6. Current mathematical direction
+
+The detailed current state is maintained in `docs/CURRENT_STATE.md`.
+
+The present strategic route is:
 
 ```text
-.github/workflows/canonical-barnette-search.yml
+certified cofacial H^{+--}
+        -> 3-connected cofacial H^{+-}
+        -> Kelmans amplification
+        -> independently certified Barnette counterexample
 ```
 
-## 3. Current validated findings
+The strongest certified object is a ternary facial obstruction in canonical order-100 candidate 489. Exact six-pole composition has produced planar cofacial binary-obstruction near-counterexamples that fail only 3-connectivity. The immediate problem is connectivity repair without restoring the forbidden Hamiltonian trace.
 
-No counterexample has been found.
+The first 655-repair source-2 family is fully eliminated. The next search must attack the sparsest remaining repair families, prioritizing one-closure cases. A discussion-derived `source-57` target must first be materialized as a committed reproducible repository object before computation continues.
 
-Canonical order-92 campaign:
+## 7. Permanent validation policy
 
-- official plantri 5.8 archive;
-- archive SHA-256: `e78a944116fec9f2c9f5e484206276cc2b0043bae803e9815f4b2683614629b8`;
-- generation form: `plantri -bc4dg 92d RES/10000`;
-- 8 disjoint shards;
-- 300 canonical graph6 outputs retained per shard;
-- 2,400 non-isomorphic 92-vertex graphs sampled;
-- 2,342 graphs escaped the implemented face-based sufficient-condition filters;
-- 8 matching-fragmentation leaders retained.
+### Positive decisions
 
-Exact natural cyclic-4-cut analysis of the leading retained graph:
+Accept a positive state or Hamiltonian cycle only with an independently checkable selected-edge witness.
 
-- 647 cyclic 4-edge cuts;
-- 1,294 cut-side four-terminal patches;
-- 1,294 complete signatures;
-- 1,294 maximal six-state signatures;
-- 0 certified restrictive patches;
-- 0 unresolved signatures;
-- 1,283,456 planar bipartition-preserving patch-map comparisons;
-- all 1,283,456 comparisons had six compatible state pairs;
-- 0 incompatible patch maps.
+Validate, as applicable:
 
-Other validated positive findings:
+- every selected edge belongs to the graph or patch;
+- no selected edge is duplicated;
+- selected edge count is exact;
+- all degree constraints hold;
+- the required number of connected components is present;
+- terminal endpoints and pairings are correct;
+- the required included/excluded edges are respected;
+- a Hamiltonian witness is connected and spans every vertex.
 
-- all 138 adjacent-edge-deletion four-poles had maximal six-state signatures;
-- 200 conservative annular transfer relations were tested;
-- each relation had 26 positively witnessed entries;
-- 12 labelled relation patterns occurred;
-- no tested pair product was empty;
-- the smallest witnessed pair product had 43 entries.
+### Negative decisions
 
-Clean reproduction record:
+A single MILP solver's infeasibility status is never mathematical evidence.
 
-- GitHub Actions workflow run ID: `30699671554`;
-- uploaded artifact SHA-256: `fd22be4b51b1d950391f8349697d5842e59b5b58f60b246aef9d08a57f5d104d`;
-- verified solver environment: SciPy 1.18.0.
+A final negative requires an independent proof-producing formulation, normally:
 
-This was a distributed canonical sample. It was not an exhaustive enumeration of all order-92 Barnette graphs and was not a statistically uniform random sample.
+1. construct the final CNF;
+2. solve UNSAT using an external proof-producing solver such as CaDiCaL;
+3. emit textual DRAT or LRAT;
+4. validate the proof with an independent checker such as `drat-trim`;
+5. publish the CNF, proof, checker output, hashes, source graph, and transformation provenance.
 
-## 4. Critical retraction and solver policy
+### Exact finite enumeration
 
-An earlier local SciPy 1.17.0 run reported two apparent missing path states:
+A local negative may be accepted as exact only when the finite enumeration is complete, has no budget abort, and its implementation and state space are independently checkable. Such a local exact negative is not automatically a whole-graph non-Hamiltonicity proof.
 
-- `c156-s0`, state `P23`;
-- `c446-s1`, state `P01`.
+## 8. Permanent warnings and retractions
 
-Those claims were false. A clean SciPy 1.18.0 run generated explicit valid spanning-path witnesses for both states. The earlier restrictive-patch certificates were deleted and the discrepancy was recorded in:
+The following must remain visible in all future work:
 
-```text
-results/2026-08-01/solver_discrepancy_retraction.json
-```
+1. **SciPy/HiGHS false infeasibility:** SciPy 1.17.0 falsely classified `c156-s0:P23` and `c446-s1:P01`; explicit witnesses under SciPy 1.18.0 retracted both results.
+2. **Multi-parent key collision:** the first higher-order driver used locally numbered `c<cut>-s<side>` keys and could overwrite cases across graphs. Only `g<graph>-c<cut>-s<side>` output is authoritative.
+3. **Positive underapproximation is insufficient for negative composition:** pole `C` contained an omitted positive six-terminal state. Negative language claims require complete exact languages or certified missing states.
+4. **C4 repair orientation matters:** endpoint sorting can destroy directed bipartite face orientation and generate invalid repair interpretations.
+5. **Matching rarity is not distance to nonexistence:** this failed for whole graphs, four-terminal `Q` states, and six-terminal signatures.
 
-Mandatory interpretation rules:
+Never remove these warnings merely because later files contain corrected results.
 
-- A positive state is accepted only with an independently checkable selected-edge witness.
-- A single MILP solver's infeasibility status is never mathematical evidence.
-- Every apparent missing state is provisional until independently reproduced with a different formulation.
-- A retained negative state ultimately requires a checked proof-producing SAT result, such as DRAT or LRAT.
-- Timeouts and interrupted solves remain unknown.
-- Retracted findings must remain documented; do not silently delete the history of the error.
+## 9. Run specification before expensive work
 
-## 5. Boundary-state model
+Before a long or expensive experiment, commit a run specification containing:
 
-For four terminals `0,1,2,3`, the nominal state labels are:
-
-```text
-P01 P02 P03 P12 P13 P23
-Q01_23 Q02_13 Q03_12
-```
-
-For a planar bipartite four-terminal patch, bipartition parity and planar noncrossing constraints leave six structurally possible states: four `P` states and two `Q` states. A six-state signature is maximal relative to those constraints.
-
-The highest-value local obstruction is a proof-certified missing noncrossing `Q` state, not merely a missing `P` state.
-
-Current primary progress metric:
-
-```text
-number of independently certified missing noncrossing Q states = 0
-```
-
-## 6. Strongest next experiment
-
-Continue with a higher-order, Q-first, proof-producing search.
-
-Target orders:
-
-```text
-94, 96, 98, 100
-```
-
-Recommended sequence:
-
-1. Generate distributed canonical plantri shards.
-2. Record the exact plantri command, archive hash, shard residues, limits, and graph counts before analysis.
-3. Verify cubicity, bipartiteness, planarity, connectivity, and cyclic connectivity independently.
-4. Apply valid theorem-based sufficient-condition filters.
-5. Rank the surviving graphs using heuristic matching-fragmentation metrics only as prioritization signals.
-6. Enumerate natural cyclic 4-edge-cut sides.
-7. Solve the two noncrossing `Q` states first.
-8. Validate every positive result through an explicit selected-edge witness checker.
-9. Treat every apparent negative as provisional.
-10. Re-encode provisional negatives using an independent SAT formulation.
-11. Retain a restrictive patch only after checking an UNSAT proof.
-12. Construct annular transfer relations from verified decisions.
-13. Search the Boolean transfer semigroup for an empty product.
-14. If a full graph is assembled, revalidate all Barnette predicates and prove whole-graph non-Hamiltonicity independently.
-
-Do not spend substantial compute solving all path states for patches that already realize both noncrossing `Q` states unless those path states are required for a specific transfer calculation.
-
-## 7. Mandatory repository checkpoint protocol
-
-No important result may exist only in chat history, local scratch files, terminal output, or an uncommitted workspace.
-
-### Before a long or expensive experiment
-
-Commit or update a run specification containing:
-
-- objective;
-- hypothesis;
-- graph order and class;
-- generator and exact command;
-- shard or seed selection;
+- objective and hypothesis;
+- exact source graph or graph family;
+- generator and command;
+- state space and mathematical formulation;
+- shard, seed, or permutation selection;
 - software and solver versions;
-- timeout and retry policy;
+- timeout, retry, and budget policy;
 - expected output paths;
-- acceptance and rejection criteria.
+- positive, negative, unknown, and retracted classification criteria;
+- escalation conditions;
+- abort conditions;
+- required evidence and hashes.
 
-The agent must publish that specification itself. Owner action is not part of the checkpoint process.
+For construction targets, include the graph encoding, pole identities, terminal permutations, separators, target edges, closure states, repair operation, and exact reproduction command.
 
-### After every meaningful phase
+## 10. Checkpoint contents
 
-Create and publish a repository checkpoint after any of the following:
-
-- canonical generation completes;
-- filtering completes;
-- a new extreme candidate is identified;
-- an exact signature batch completes;
-- an apparent negative state appears;
-- an independent confirmation succeeds or fails;
-- a solver discrepancy is detected;
-- a certificate or witness is generated;
-- a composition search completes;
-- the analytical direction changes;
-- an experiment is terminated because the formulation is inefficient or unsound.
-
-Each checkpoint must include, as applicable:
+Every meaningful checkpoint should include, as applicable:
 
 - machine-readable output;
-- a concise Markdown interpretation;
+- concise Markdown interpretation;
 - exact counts and metrics;
-- input hashes;
+- graph encodings or hashes;
 - command-line arguments;
 - environment versions;
 - elapsed time or computational budget;
+- witnesses or proof artifacts;
 - known limitations;
-- classification as `verified`, `provisional`, `unknown`, or `retracted`;
-- the next recommended action.
+- confidence label;
+- next action.
 
-### Required files to keep synchronized
+Use these exact confidence labels:
 
-After a material result, the agent must update and publish:
+### `verified`
 
-1. `docs/RESEARCH_LOG.md` with an append-only dated entry;
-2. the current technical report or a new dated report;
-3. machine-readable files under `results/YYYY-MM-DD/`;
-4. this `AGENTS.md` file if the validated state, warning set, or next experiment changes;
-5. the active PR description or a PR comment when the result changes the review-level interpretation.
+Directly checkable positive witness, independently reproduced computation, complete finite enumeration, or checked proof certificate.
 
-### Commit and PR discipline
+### `provisional`
 
-Use small, descriptive commits. Prefer one coherent research checkpoint per commit or short sequence of commits. The agent is responsible for creating the commits, publishing them, maintaining the branch, and keeping the pull request current.
+Potentially important result from one formulation or incomplete confirmation.
+
+### `unknown`
+
+Timeout, interruption, malformed case, solver failure, resource exhaustion, missing provenance, or insufficient evidence.
+
+### `retracted`
+
+A prior result contradicted by a valid witness, stronger computation, or identified implementation error.
+
+Do not use `non-Hamiltonian`, `counterexample`, `proved`, or equivalent final language unless the required certificate exists.
+
+## 11. Branch and PR discipline
+
+Use small descriptive commits. Prefer one coherent research checkpoint per commit or a short ordered sequence.
 
 Recommended prefixes:
 
 ```text
-experiment: record generation checkpoint
-results: add exact cyclic-cut signatures
-proof: add independently checked witness
-fix: correct boundary-state formulation
+experiment: record committed run specification
+results: add exact state-language checkpoint
+proof: add independently checked certificate
+fix: correct formulation or indexing defect
+docs: update canonical research state
 docs: retract solver-dependent claim
-ci: pin verified solver environment
+ci: pin or repair validation workflow
 ```
 
-Never overwrite a prior result in a way that obscures a retraction. Preserve the old claim in the chronological log and add an explicit correction.
+Auxiliary branches may be used for isolated work, but material results must be integrated or explicitly indexed in `docs/CURRENT_STATE.md`. Do not allow an auxiliary branch to become the only location of a critical proof checker, witness set, generator, or result summary.
 
-## 8. Result confidence levels
+Do not merge diverged auxiliary branches wholesale. Selectively port valid files, preserve provenance, and run regressions.
 
-Use these exact labels in reports and machine-readable summaries:
+## 12. Required files to keep synchronized
 
-### `verified`
+After a material result, update:
 
-Directly checkable positive witness, independently reproduced computation, or checked proof certificate.
+1. `docs/CURRENT_STATE.md`;
+2. `docs/RESEARCH_LOG.md`;
+3. the relevant technical report;
+4. machine-readable evidence under `results/YYYY-MM-DD/`;
+5. `AGENTS.md` only when the operating rules or permanent warning set changes;
+6. PR #1 with a concise review-level checkpoint.
 
-### `provisional`
+## 13. Immediate pickup checklist
 
-Potentially important result from one formulation or solver, awaiting independent confirmation.
+A new agent must:
 
-### `unknown`
+1. read `AGENTS.md`;
+2. read `docs/CURRENT_STATE.md` completely;
+3. read the latest research-log entries backward;
+4. inspect PR #1 and current CI;
+5. compare branch heads and newest results against the current-state snapshot;
+6. resolve any state discrepancy before new computation;
+7. verify that the active target has a committed reproducible specification;
+8. execute autonomously;
+9. checkpoint material results as they occur;
+10. before ending, update the canonical snapshot and append the research log.
 
-Timeout, interrupted solve, numerical failure, malformed case, resource exhaustion, or insufficient evidence.
+## 14. End-of-session gate
 
-### `retracted`
+Before finishing any work session, explicitly verify:
 
-Previously reported result contradicted by a valid witness, stronger computation, or identified implementation error.
+- [ ] all material findings are committed;
+- [ ] `docs/CURRENT_STATE.md` reflects the newest interpretation;
+- [ ] `docs/RESEARCH_LOG.md` contains a dated append-only entry;
+- [ ] evidence files and hashes are published;
+- [ ] PR #1 contains the latest review-level checkpoint;
+- [ ] CI status and unresolved jobs are recorded accurately;
+- [ ] no critical work exists only on an auxiliary branch or in chat;
+- [ ] the next agent can identify and reproduce the exact next action without reconstructing conversation history.
 
-Do not use `infeasible`, `non-Hamiltonian`, `counterexample`, or `proved` in a final interpretation unless the required independent certificate exists.
-
-## 9. Reproduction baseline
-
-Install the pinned environment:
-
-```bash
-python -m pip install -r requirements.txt
-```
-
-Unpack source files when needed:
-
-```bash
-python source/unpack_sources.py
-```
-
-The GitHub Actions workflow downloads and hashes official plantri 5.8, compiles it, generates canonical order-92 shards, ranks candidates, solves cyclic-cut boundary signatures, records a manifest, and uploads the output artifact.
-
-Before extending the workflow to higher orders, preserve the order-92 job as a regression test or retain equivalent fixed regression cases for:
-
-- maximal six-state patch recognition;
-- timeout-to-unknown behavior;
-- witness validation;
-- the two formerly misclassified states;
-- manifest and hash generation.
-
-## 10. Immediate pickup checklist
-
-A new agent must complete this workflow autonomously:
-
-1. Read this file.
-2. Read `README.md`.
-3. Read `docs/CANONICAL_STRUCTURAL_SEARCH_2026-08-01.md`.
-4. Read `docs/RESEARCH_LOG.md` from the most recent entry backward.
-5. Inspect PR #1 and its latest checks.
-6. Confirm the working branch and repository state before changing files.
-7. Reproduce or inspect the order-92 regression before altering solver logic.
-8. Begin the next experiment from a committed run specification.
-9. Commit and publish all important findings immediately.
-10. Update the PR and CI state without requesting owner intervention.
-
-## 11. Current stopping point
-
-The order-92 natural one-interface route has produced no restrictive patch. Ordinary cyclic-4-cut sides of the leading graph are maximally Hamiltonian-flexible. The next rational search is higher-order and `Q`-first, with proof-producing confirmation for every apparent missing state.
-
-Do not restart the superseded adjacent-vertex-deletion or unrestricted all-state-first searches without a specific new theoretical reason.
+A session is not complete until this gate is satisfied.
