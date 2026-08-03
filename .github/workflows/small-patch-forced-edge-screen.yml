@@ -1,0 +1,170 @@
+name: Small-patch forced-edge screen
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/small-patch-forced-edge-screen.yml
+      - search/screen_small_patch_forced_edges.py
+      - search/sat_verify_face_constraints.py
+      - results/2026-08-02/three_edge_face_candidates.json
+      - requirements.txt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: small-patch-forced-edge-screen
+  cancel-in-progress: true
+
+jobs:
+  screen:
+    name: Forced-edge shard ${{ matrix.shard }}/4
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install pinned dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python - <<'PY'
+          from pysat.solvers import Solver
+          with Solver(name='g4') as solver:
+              solver.add_clause([1])
+              assert solver.solve()
+          PY
+
+      - name: Build independent proof toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git tools/drat-trim
+          make -C tools/drat-trim
+          test -x tools/drat-trim/drat-trim
+          git -C tools/drat-trim rev-parse HEAD | tee drat-trim.commit
+
+          git clone --depth 1 https://github.com/arminbiere/cadical.git tools/cadical
+          cd tools/cadical
+          ./configure
+          make -j2
+          test -x build/cadical
+          build/cadical --version
+          git rev-parse HEAD | tee ../../cadical.commit
+
+      - name: Generate and screen exact shard
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="results/2026-08-03/small-patch-forced-edge/shard-${{ matrix.shard }}"
+          mkdir -p "${ROOT}"
+          python search/screen_small_patch_forced_edges.py \
+            --source-input results/2026-08-02/three_edge_face_candidates.json \
+            --output-dir "${ROOT}" \
+            --pair-indices 0,9 \
+            --shard-index "${{ matrix.shard }}" \
+            --shard-count 4 \
+            --solver g4 \
+            --proof-solver tools/cadical/build/cadical \
+            --drat-trim tools/drat-trim/drat-trim \
+            --max-rounds 20000 \
+            --proof-timeout 1800 \
+            | tee "${ROOT}/campaign.log"
+
+      - name: Enforce exact family and complete classifications
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib, platform, subprocess
+          import networkx
+          try:
+              import pysat
+              pysat_version=pysat.__version__
+          except Exception:
+              pysat_version=None
+
+          shard=${{ matrix.shard }}
+          root=pathlib.Path(f'results/2026-08-03/small-patch-forced-edge/shard-{shard}')
+          root.mkdir(parents=True,exist_ok=True)
+          summary_path=root/'campaign_summary.json'
+          summary=json.loads(summary_path.read_text()) if summary_path.exists() else None
+          files=[]
+          for path in sorted(root.rglob('*')):
+              if path.is_file():
+                  files.append({
+                      'path':str(path),
+                      'bytes':path.stat().st_size,
+                      'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),
+                  })
+          manifest={
+              'campaign':'candidate489-small-patch-forced-edge-screen',
+              'shard_index':shard,
+              'shard_count':4,
+              'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+              'source_file':'results/2026-08-02/three_edge_face_candidates.json',
+              'summary':summary,
+              'required_edge_fragment_found':bool(summary and summary.get('forced_edge_candidates')),
+              'counterexample_found':False,
+              'drat_trim_commit':pathlib.Path('drat-trim.commit').read_text().strip() if pathlib.Path('drat-trim.commit').exists() else None,
+              'cadical_commit':pathlib.Path('cadical.commit').read_text().strip() if pathlib.Path('cadical.commit').exists() else None,
+              'software':{
+                  'python':platform.python_version(),
+                  'networkx':networkx.__version__,
+                  'python_sat':pysat_version,
+              },
+              'files':files,
+          }
+          (root/'manifest.json').write_text(json.dumps(manifest,indent=2))
+          print(json.dumps({
+              'shard':shard,
+              'generation':summary.get('generation') if summary else None,
+              'cases':summary.get('cases_attempted') if summary else None,
+              'classification_counts':summary.get('classification_counts') if summary else None,
+              'forced_edge_count':summary.get('forced_edge_count') if summary else None,
+              'incomplete_cases':summary.get('incomplete_cases') if summary else None,
+          },indent=2))
+          if summary is None:
+              raise SystemExit('campaign summary missing')
+          generation=summary['generation']
+          assert generation['unique_valid_expansions'] == 436, generation
+          assert generation['unique_valid_by_patch_order'] == {'6': 4, '10': 432} or generation['unique_valid_by_patch_order'] == {6: 4, 10: 432}, generation
+          assert generation['new_edge_cases'] == 7388, generation
+          assert summary['candidates_attempted'] == 109, summary['candidates_attempted']
+          assert summary['cases_attempted'] == 1847, summary['cases_attempted']
+          if not summary.get('complete_classification'):
+              raise SystemExit(f'incomplete cases: {summary.get("incomplete_cases")}')
+          accepted=sum(summary.get('classification_counts',{}).get(key,0) for key in ('verified_positive','certified_negative'))
+          if accepted != 1847:
+              raise SystemExit(f'accepted classification mismatch: {accepted} != 1847')
+          PY
+
+      - name: Upload complete shard evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: small-patch-forced-edge-shard-${{ matrix.shard }}-${{ github.sha }}
+          path: |
+            results/2026-08-03/small-patch-forced-edge/shard-${{ matrix.shard }}
+            results/2026-08-02/three_edge_face_candidates.json
+            search/screen_small_patch_forced_edges.py
+            search/sat_verify_face_constraints.py
+            drat-trim.commit
+            cadical.commit
+          if-no-files-found: error
+          retention-days: 90
