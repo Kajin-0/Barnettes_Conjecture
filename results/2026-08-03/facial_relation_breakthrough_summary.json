@@ -1,0 +1,162 @@
+{
+  "date_utc": "2026-08-03",
+  "status": "verified",
+  "counterexample_found": false,
+  "campaign": "facial-relation-breakthrough",
+  "consecutive_facial_scan": {
+    "candidate489": {
+      "workflow_run_id": 30839029504,
+      "artifact_id": 8866041076,
+      "artifact_sha256": "364d21fadca40954bfba905ffa808e545a5d3027b842717a99f7931d89d8dc50",
+      "parents": 1,
+      "facial_path_cases": 300,
+      "verified_positive": 300,
+      "certified_negative": 0,
+      "unknown_or_provisional": 0
+    },
+    "grand_v3_order96": {
+      "workflow_run_id": 30839740121,
+      "artifact_id": 8866325642,
+      "artifact_sha256": "518f06808886a40c2ca9a067590fd5d2e18f5179f3a671902c2a2bf264a1a36b",
+      "parents": 12,
+      "facial_path_cases": 3456,
+      "verified_positive": 3456,
+      "certified_negative": 0,
+      "unknown_or_provisional": 0
+    },
+    "grand_v3_order100": {
+      "workflow_run_id": 30839740121,
+      "artifact_id": 8866319064,
+      "artifact_sha256": "a2ef7fa9c538f4c340c8f0207cd9d14f14ca19e5f0b14fc7c3994db3b5e080d8",
+      "parents": 12,
+      "facial_path_cases": 3600,
+      "verified_positive": 3600,
+      "certified_negative": 0,
+      "unknown_or_provisional": 0
+    },
+    "combined": {
+      "parents": 25,
+      "facial_path_cases": 7356,
+      "verified_positive": 7356,
+      "certified_negative": 0,
+      "unknown_or_provisional": 0,
+      "interpretation": "The consecutive three-edge facial failure mechanism is absent in candidate 489 and all 24 retained Grand-v3 parents."
+    }
+  },
+  "candidate489_face2_exact_mask_exploration": {
+    "provenance": "independent finite complement-perfect-matching enumeration, cross-checked against the previously certified ternary obstruction",
+    "face_edges": [
+      [5, 10],
+      [10, 17],
+      [17, 25],
+      [25, 35],
+      [35, 48],
+      [40, 48],
+      [30, 40],
+      [22, 30],
+      [14, 22],
+      [14, 18],
+      [11, 18],
+      [5, 11]
+    ],
+    "all_boolean_masks": 4096,
+    "locally_degree_feasible_masks": 322,
+    "hamiltonian_positive_masks": 100,
+    "exact_negative_masks": 222,
+    "unknown_masks": 0,
+    "maximum_recursive_calls_per_mask": 3124,
+    "prime_forbidden_cubes": {
+      "width_2": 8,
+      "width_3": 9,
+      "width_4": 14,
+      "width_7": 3,
+      "width_12": 1,
+      "total": 35
+    },
+    "validation_note": "The known principal assignment x=(14,18) included and y=(10,17), z=(5,11) excluded had 21 locally feasible completions and zero Hamiltonian completions, matching the prior checked DRAT result.",
+    "confidence": "The eight width-two cases below were independently re-encoded and proof-certified. Other aggregate mask counts remain a complete finite-enumeration checkpoint pending a dedicated independent workflow reproduction."
+  },
+  "certified_unavoidable_cofacial_edge_pairs": {
+    "workflow_run_id": 30840232014,
+    "artifact_id": 8866489362,
+    "artifact_sha256": "5494440bb3e69f82df40e99729dd23460856ca79bd960ff8f934ca6668289a1a",
+    "source_graph": "canonical order-100 candidate 489",
+    "face_index": 2,
+    "relation": "For every listed pair {a,b}, every Hamiltonian cycle contains at least one of a or b; equivalently no Hamiltonian cycle avoids both.",
+    "certified_negative": 8,
+    "verified_positive_contradictions": 0,
+    "unknown_or_provisional": 0,
+    "pairs": [
+      {
+        "face_edge_indices": [0, 9],
+        "edges": [[5, 10], [14, 18]],
+        "locally_feasible_face_masks_avoiding_pair": 21,
+        "cnf_sha256": "6a5fd5841ef6dcdd7d9082f40c2eeb4dbb43fc3057a20a040e1f542bd75224c0",
+        "drat_sha256": "c80f1dd0be873f33475bbe9021ea2808c4e941b1ef6e4ec3e584e926678c6f94",
+        "drat_trim_verified": true
+      },
+      {
+        "face_edge_indices": [1, 8],
+        "edges": [[10, 17], [14, 22]],
+        "locally_feasible_face_masks_avoiding_pair": 24,
+        "cnf_sha256": "73dbdc63a960a25ddf4a5f6e6b45456952a98c32e26006a5e2fbc74ee77304c2",
+        "drat_sha256": "2ea31172782918efb81ea7c56778d57392c6016674fd13277edfbc19473f33b2",
+        "drat_trim_verified": true
+      },
+      {
+        "face_edge_indices": [2, 7],
+        "edges": [[17, 25], [22, 30]],
+        "locally_feasible_face_masks_avoiding_pair": 24,
+        "cnf_sha256": "23a507dba81e04d6b3a1c13d68f96446165e34a528d2f5a1a0530c29092be787",
+        "drat_sha256": "6ceb9b5d0a9ce2b92e9edec9e25a739c13f7bdf9d82bf04941872c0d624d5eb9",
+        "drat_trim_verified": true
+      },
+      {
+        "face_edge_indices": [2, 9],
+        "edges": [[17, 25], [14, 18]],
+        "locally_feasible_face_masks_avoiding_pair": 24,
+        "cnf_sha256": "10859b88b34a1dac843a09c5107ca817fba474719bd35c8861b63ff9e7453840",
+        "drat_sha256": "e15d030cf9c618ee8a46d11efee1c9b5aad3542f13bf5f2d04b85176592fafc1",
+        "drat_trim_verified": true
+      },
+      {
+        "face_edge_indices": [2, 11],
+        "edges": [[17, 25], [5, 11]],
+        "locally_feasible_face_masks_avoiding_pair": 21,
+        "cnf_sha256": "26b49734848207415e052efeb7ad208786b446f52d3be14f1278f89d63a7f0d2",
+        "drat_sha256": "3202d3309c005365a7750ef841ba160a340d60e25f0260f931a30eff1f6a95d8",
+        "drat_trim_verified": true
+      },
+      {
+        "face_edge_indices": [3, 6],
+        "edges": [[25, 35], [30, 40]],
+        "locally_feasible_face_masks_avoiding_pair": 21,
+        "cnf_sha256": "c24ee56fb4c9de7cdbb015bf2d088f220a85dd569cde50d68e3de91ded364b5c",
+        "drat_sha256": "ac22bef0c53a134012d8e1b26544c307727ab5c650c1231b9a8992fc181c6fab",
+        "drat_trim_verified": true
+      },
+      {
+        "face_edge_indices": [4, 7],
+        "edges": [[35, 48], [22, 30]],
+        "locally_feasible_face_masks_avoiding_pair": 21,
+        "cnf_sha256": "6c65606945b06d42694d7b52f3570480d3404c2161f55a147f97c962b2f99523",
+        "drat_sha256": "df2d9a6f9c6bb1db6a984e1902233e13e2bc1df2ba9840e2dfd6a8b0940d8eaa",
+        "drat_trim_verified": true
+      },
+      {
+        "face_edge_indices": [8, 11],
+        "edges": [[14, 22], [5, 11]],
+        "locally_feasible_face_masks_avoiding_pair": 21,
+        "cnf_sha256": "34830e94b6d2b98fff250718938cfe3e1d311a5292bc624b4fc141041ca9a8e0",
+        "drat_sha256": "d4009d9916c00f80115d3768621c132ceac65fa6b50b6603ff87d5939729e808",
+        "drat_trim_verified": true
+      }
+    ]
+  },
+  "strategic_consequence": {
+    "new_primary_primitive": "proof-certified cofacial H^{--} relation",
+    "required_conversion": "Construct a simple cubic bipartite planar 3-connected polarity inverter that converts an unavoidable pair into a forced edge, an H^{+-} obstruction, or a direct zero-compatible closure.",
+    "active_campaign": "Complete exhaustive screen of all 436 valid 6/10-vertex patch expansions over pair (0,9), testing all 7388 new patch/glue edges for forced-edge status.",
+    "active_workflow_run_id": 30842075897
+  }
+}
