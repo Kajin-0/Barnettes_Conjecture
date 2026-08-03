@@ -402,3 +402,98 @@ This correction captures repository state available through the authoritative br
 2. Materialize the `source-57` one-closure target as a committed run specification and machine-readable candidate record.
 3. Selectively integrate still-valid proof and search artifacts stranded on auxiliary branches.
 4. Reconcile `docs/CURRENT_STATE.md` whenever the active workflows complete or the construction target changes.
+
+---
+
+## 2026-08-03 16:24 UTC — Annular swap and semigroup provenance recovery
+
+**Status:** `provisional` for provenance; exact claims preserved from authoritative PR body  
+**Counterexample found:** No
+
+### Objective
+
+Reconcile the newly created canonical current-state snapshot against the complete PR #1 body.
+
+The comparison immediately found another important result that existed only in PR-level prose and had not been represented by a dedicated tracked report or machine-readable summary.
+
+### Recovered claim
+
+The PR body reported a 300-annulus order-100 scan with six cardinality-two `Q -> Q` blocks. These were identified as three 8-cycle rings viewed in both directions.
+
+The exact two-state block was reported as:
+
+```text
+Q01_23 -> Q03_12
+Q03_12 -> Q01_23
+```
+
+The two diagonal transitions were exactly impossible. The reported structural explanation was that degree constraints leave the two alternating perfect matchings of the 8-cycle; off-diagonal closure yields one spanning cycle, while diagonal closure yields two disjoint cycles.
+
+The reported full relation had:
+
+```text
+|R|   = 14
+|R^2| = 28
+|R^3| = 36
+```
+
+The reported broader Boolean relation semigroup had:
+
+- 14 distinct positive relation patterns;
+- 834 relations in its closure;
+- stabilization by depth six;
+- no empty product;
+- minimum generated cardinality 13;
+- complete 36-transition relations.
+
+### Interpretation
+
+The 8-cycle ring provides an exact nontrivial annular correlation but not an obstruction. Its `Q -> Q` block is a swap permutation, and repeated composition increases flexibility until the full relation is reached.
+
+The remaining annular target is therefore an exact block with:
+
+- zero transitions;
+- one transition; or
+- two non-bijective transitions producing a zero row or column.
+
+The certified ternary-obstruction connectivity-repair program remains the higher-priority constructive route.
+
+### Provenance problem
+
+No dedicated tracked raw artifact was found for:
+
+- the 300-annulus scan;
+- the six annulus identifiers;
+- the exact 8-cycle enumeration;
+- the 14-transition full relation;
+- the relation powers;
+- the 834-relation semigroup calculation;
+- commands, software versions, elapsed times, or hashes.
+
+Therefore the mathematical claim has been preserved but not silently upgraded to independently verified repository evidence.
+
+### Repository correction
+
+Created:
+
+- `docs/ANNULAR_SWAP_SEMIGROUP_CHECKPOINT_2026-08-03.md`;
+- `results/2026-08-03/annular_swap_semigroup_checkpoint.json`.
+
+Updated:
+
+- `docs/CURRENT_STATE.md` with the exact reported metrics, strategic consequence, provenance warning, evidence map, and recovery action.
+
+Commits:
+
+```text
+fee341674a946cde7d06dea1b2c69f85cd10005a  results: preserve annular swap semigroup checkpoint
+634a9e12f2baff39bc36c66aae7f067d560040f6  docs: preserve annular swap semigroup result
+00cdf3f51830999fc68eae6d00f28680b7f27729  docs: reconcile annular swap result into current state
+```
+
+### Required next action
+
+1. Search auxiliary branches and workflow artifacts for the original annular files.
+2. If absent, reconstruct and rerun the 8-cycle exact relation and Boolean semigroup closure.
+3. Publish the full commands, identifiers, software versions, raw output, and hashes.
+4. Upgrade or correct the checkpoint only after the evidence is available.
