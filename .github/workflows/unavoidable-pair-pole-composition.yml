@@ -1,0 +1,176 @@
+name: Unavoidable-pair pole composition proof
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/unavoidable-pair-pole-composition.yml
+      - search/compose_unavoidable_pair_poles.py
+      - search/sat_verify_face_constraints.py
+      - results/2026-08-02/three_edge_face_candidates.json
+      - requirements.txt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: unavoidable-pair-pole-composition-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  prove:
+    name: Pole-composition shard ${{ matrix.shard }}/4
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install pinned dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python - <<'PY'
+          import networkx, pysat
+          from pysat.solvers import Solver
+          print('networkx', networkx.__version__)
+          print('python-sat', pysat.__version__)
+          with Solver(name='g4') as solver:
+              solver.add_clause([1])
+              assert solver.solve()
+          PY
+
+      - name: Build independent proof toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git tools/drat-trim
+          make -C tools/drat-trim
+          test -x tools/drat-trim/drat-trim
+          git -C tools/drat-trim rev-parse HEAD | tee drat-trim.commit
+
+          git clone --depth 1 https://github.com/arminbiere/cadical.git tools/cadical
+          cd tools/cadical
+          ./configure
+          make -j2
+          test -x build/cadical
+          build/cadical --version
+          git rev-parse HEAD | tee ../../cadical.commit
+
+      - name: Generate and proof-check exact shard
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="results/2026-08-03/unavoidable-pair-pole-composition/shard-${{ matrix.shard }}"
+          mkdir -p "${ROOT}"
+          python search/compose_unavoidable_pair_poles.py \
+            --source-input results/2026-08-02/three_edge_face_candidates.json \
+            --output-dir "${ROOT}" \
+            --shard-index "${{ matrix.shard }}" \
+            --shard-count 4 \
+            --solver g4 \
+            --proof-solver tools/cadical/build/cadical \
+            --drat-trim tools/drat-trim/drat-trim \
+            --max-rounds 100000 \
+            --proof-timeout 3600 \
+            | tee "${ROOT}/campaign.log"
+
+      - name: Enforce complete classification and write manifest
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib, platform, subprocess
+          import networkx
+          try:
+              import pysat
+              pysat_version=pysat.__version__
+          except Exception:
+              pysat_version=None
+
+          shard=${{ matrix.shard }}
+          root=pathlib.Path(f'results/2026-08-03/unavoidable-pair-pole-composition/shard-{shard}')
+          root.mkdir(parents=True,exist_ok=True)
+          summary_path=root/'campaign_summary.json'
+          summary=json.loads(summary_path.read_text()) if summary_path.exists() else None
+          files=[]
+          for path in sorted(root.rglob('*')):
+              if path.is_file():
+                  files.append({
+                      'path':str(path),
+                      'bytes':path.stat().st_size,
+                      'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),
+                  })
+          manifest={
+              'campaign':'two-copy-unavoidable-pair-pole-composition',
+              'shard_index':shard,
+              'shard_count':4,
+              'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+              'source_file':'results/2026-08-02/three_edge_face_candidates.json',
+              'summary':summary,
+              'counterexample_found':bool(summary and summary.get('counterexample_candidates')),
+              'drat_trim_commit':pathlib.Path('drat-trim.commit').read_text().strip() if pathlib.Path('drat-trim.commit').exists() else None,
+              'cadical_commit':pathlib.Path('cadical.commit').read_text().strip() if pathlib.Path('cadical.commit').exists() else None,
+              'software':{
+                  'python':platform.python_version(),
+                  'networkx':networkx.__version__,
+                  'python_sat':pysat_version,
+              },
+              'files':files,
+          }
+          (root/'manifest.json').write_text(json.dumps(manifest,indent=2))
+          print(json.dumps({
+              'shard':shard,
+              'generation':summary.get('generation') if summary else None,
+              'candidates':summary.get('candidates_attempted') if summary else None,
+              'classification_counts':summary.get('classification_counts') if summary else None,
+              'counterexample_candidate_count':summary.get('counterexample_candidate_count') if summary else None,
+              'incomplete_cases':summary.get('incomplete_cases') if summary else None,
+          },indent=2))
+          if summary is None:
+              raise SystemExit('campaign summary missing')
+          generation=summary['generation']
+          assert generation['raw_maps'] == 144, generation
+          assert generation['barnette_maps_before_graph6_dedup'] == 72, generation
+          assert generation['unique_barnette_assemblies'] == 72, generation
+          assert summary['candidates_attempted'] == 18, summary['candidates_attempted']
+          if not summary.get('complete_classification'):
+              raise SystemExit(f'incomplete cases: {summary.get("incomplete_cases")}')
+          accepted=sum(summary.get('classification_counts',{}).get(key,0) for key in ('verified_positive','certified_negative'))
+          if accepted != 18:
+              raise SystemExit(f'accepted classification mismatch: {accepted} != 18')
+          for candidate in summary.get('counterexample_candidates',[]):
+              result=candidate.get('result',{})
+              if result.get('classification') != 'certified_negative':
+                  raise SystemExit('counterexample candidate lacks certified-negative classification')
+              if not result.get('proof_verification',{}).get('verified',False):
+                  raise SystemExit('counterexample candidate lacks checked proof')
+          PY
+
+      - name: Upload complete shard evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unavoidable-pair-pole-shard-${{ matrix.shard }}-${{ github.sha }}
+          path: |
+            results/2026-08-03/unavoidable-pair-pole-composition/shard-${{ matrix.shard }}
+            results/2026-08-02/three_edge_face_candidates.json
+            search/compose_unavoidable_pair_poles.py
+            search/sat_verify_face_constraints.py
+            drat-trim.commit
+            cadical.commit
+          if-no-files-found: error
+          retention-days: 90
