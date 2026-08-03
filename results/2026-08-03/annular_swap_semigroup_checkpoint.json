@@ -1,0 +1,52 @@
+{
+  "date_utc": "2026-08-03",
+  "status": "provenance_incomplete_checkpoint",
+  "counterexample_found": false,
+  "source": {
+    "type": "authoritative PR body reconstruction",
+    "pull_request": 1,
+    "retrieved_at_utc": "2026-08-03T16:20:54Z",
+    "underlying_raw_artifact_located": false,
+    "warning": "The mathematical claims below were present in the authoritative PR body, but no dedicated tracked raw result or report containing the full computation was located at this checkpoint. Recover or reproduce before treating this file as an independent verification artifact."
+  },
+  "order100_annular_scan": {
+    "annuli_scanned": 300,
+    "cardinality_two_q_blocks": 6,
+    "structural_identification": "three 8-cycle rings viewed in both directions",
+    "exact_q_relation": [
+      "Q01_23->Q03_12",
+      "Q03_12->Q01_23"
+    ],
+    "diagonal_transitions": {
+      "Q01_23->Q01_23": "exactly impossible",
+      "Q03_12->Q03_12": "exactly impossible"
+    },
+    "reported_reason": "Degree constraints leave the two alternating perfect matchings of the 8-cycle ring. Off-diagonal boundary pairing gives one spanning cycle; diagonal pairing gives two disjoint cycles."
+  },
+  "full_six_state_relation": {
+    "base_cardinality": 14,
+    "square_cardinality": 28,
+    "cube_cardinality": 36,
+    "interpretation": "Repeated ring composition increases boundary flexibility and reaches the full 6x6 transition domain by the third power."
+  },
+  "broader_relation_semigroup": {
+    "distinct_positive_relation_patterns": 14,
+    "closure_relations": 834,
+    "stabilization_depth": 6,
+    "empty_product_found": false,
+    "minimum_generated_relation_cardinality": 13,
+    "complete_36_transition_relation_reached": true
+  },
+  "strategic_consequence": {
+    "retire": "The exact 8-cycle swap ring is not an annihilating annular obstruction; its powers become more flexible.",
+    "remaining_annular_target": "Search for a Q block with zero or one transition, or a non-bijective two-transition block with a zero row or column.",
+    "priority_relative_to_ternary_program": "Exact connectivity repair of certified ternary-obstruction pole compositions remains the stronger immediate constructive route."
+  },
+  "required_follow_up": [
+    "Locate or reconstruct the original 300-annulus scan output.",
+    "Locate or reconstruct the exact 8-cycle relation enumeration.",
+    "Locate or reconstruct the 834-relation Boolean semigroup computation.",
+    "Publish commands, source graph identifiers, annulus identifiers, software versions, and hashes.",
+    "Reclassify this checkpoint only after independent evidence is committed."
+  ]
+}
