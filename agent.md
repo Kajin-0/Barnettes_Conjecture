@@ -1,21 +1,21 @@
 # Agent Entry Point
 
-The authoritative handoff and operating instructions are in:
+Read these files in order before continuing research:
 
 ```text
 AGENTS.md
-```
-
-Read `AGENTS.md` before continuing research. It contains the current validated findings, retractions, proof requirements, reproduction baseline, mandatory repository-checkpoint protocol, autonomous execution policy, and next recommended experiment.
-
-The append-only chronological record is:
-
-```text
+docs/CURRENT_STATE.md
 docs/RESEARCH_LOG.md
 ```
 
+- `AGENTS.md` defines the mandatory operating, proof, checkpoint, and continuity rules.
+- `docs/CURRENT_STATE.md` is the single canonical mutable snapshot of the current research state and active target.
+- `docs/RESEARCH_LOG.md` is the append-only chronological record.
+
+Then inspect PR #1, its latest commit, comments, and workflow state. Compare those sources against `docs/CURRENT_STATE.md` and resolve any discrepancy before beginning new work.
+
 This repository must be operated end to end by the active agent. Do not ask the repository owner to run commands, create branches, commit or push changes, open or update pull requests, monitor CI, upload artifacts, or maintain handoff documentation.
 
-Before ending a work session, the agent must publish all material work, update the research log and handoff state, maintain the active PR, and leave the repository immediately usable by the next agent.
+A material insight is not durably incorporated until the agent updates `docs/CURRENT_STATE.md`, appends `docs/RESEARCH_LOG.md`, publishes applicable evidence and reports, and checkpoints PR #1.
 
-Do not begin a long experiment or make a mathematical claim without first reviewing both files.
+Before ending a session, leave the repository immediately reproducible and usable by the next agent. No critical result may exist only in chat, terminal output, an Actions log, a PR comment, an auxiliary branch, or an uncommitted workspace.
