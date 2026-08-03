@@ -3,8 +3,8 @@
 **Repository:** `Kajin-0/Barnettes_Conjecture`  
 **Authoritative branch:** `agent/adversarial-search-v2`  
 **Authoritative pull request:** PR #1  
-**Snapshot timestamp:** 2026-08-03 16:14 UTC  
-**Snapshot commit before this file:** `7b21af64b44c3b4f47d84fe08dee9cb5aa42be87`  
+**Snapshot timestamp:** 2026-08-03 16:24 UTC  
+**Snapshot commit before this update:** `634a9e12f2baff39bc36c66aae7f067d560040f6`  
 **Counterexample found:** No
 
 This file is the single canonical mutable snapshot of the project. It exists to prevent research state from being lost when agents, conversations, tools, or working branches change.
@@ -257,7 +257,7 @@ Evidence:
 
 Classification: `verified` for the nine completed patches.
 
-## 8. Four-terminal and higher-order results that constrain strategy
+## 8. Four-terminal, higher-order, and annular results that constrain strategy
 
 ### Canonical order-92 natural cyclic-4-cut analysis
 
@@ -302,15 +302,64 @@ The original multi-parent driver keyed tasks only as `c<cut>-s<side>` and could 
 g<graph>-c<cut>-s<side>
 ```
 
-### Annular transfer searches
+### Annular transfer pilot
 
-Natural annular relations showed real state correlations, but tested products did not annihilate the language. Conservative products remained nonempty, and the selected order-100 pilot had 13-17 positively witnessed transitions per relation with 95 end-to-end composed `Q` witnesses validated.
+The tracked order-100 pilot contained 13-17 positively witnessed transitions per selected relation and 95 end-to-end composed `Q` witnesses. Conservative order-92 annular products also remained nonempty.
 
-Interpretation:
+### Exact 8-cycle annular swap checkpoint
 
-- correlations beyond marginal signatures are real;
-- the tested natural annuli do not currently provide an empty transfer product;
-- exact synthesis from certified ternary poles is higher priority.
+The authoritative PR body contained an additional exact result that had not been preserved in a dedicated tracked report or raw result file. A continuity checkpoint now records the claim without upgrading its provenance.
+
+Reported scan:
+
+- 300 order-100 annuli;
+- six cardinality-two `Q -> Q` blocks;
+- structurally three 8-cycle rings viewed in both directions;
+- exact block:
+
+```text
+Q01_23 -> Q03_12
+Q03_12 -> Q01_23
+```
+
+The two diagonal transitions were reported exactly impossible because the 8-cycle degree constraints leave two alternating perfect matchings: off-diagonal closure gives one spanning cycle, while diagonal closure gives two disjoint cycles.
+
+Reported full relation powers:
+
+| Relation | Cardinality |
+|---|---:|
+| `R` | 14 |
+| `R^2` | 28 |
+| `R^3` | 36 |
+
+Reported broader semigroup:
+
+- 14 distinct positive relation patterns;
+- 834 relations in the Boolean closure;
+- stabilization by depth six;
+- no empty product;
+- minimum generated cardinality 13;
+- complete 36-transition relations reached.
+
+Strategic consequence:
+
+- the exact 8-cycle relation is a swap permutation, not an annihilator;
+- repeated composition increases flexibility;
+- the remaining annular target is an exact `Q` block with zero or one transition, or a non-bijective two-transition block with a zero row or column;
+- certified ternary-pole connectivity repair remains the stronger immediate construction route.
+
+Provenance status:
+
+```text
+provenance incomplete
+```
+
+The original 300-annulus raw output, exact ring enumeration, and 834-relation semigroup artifact were not located. Recover or reproduce before treating this checkpoint as independently verified evidence.
+
+Checkpoint evidence:
+
+- `docs/ANNULAR_SWAP_SEMIGROUP_CHECKPOINT_2026-08-03.md`
+- `results/2026-08-03/annular_swap_semigroup_checkpoint.json`
 
 ## 9. Permanent retractions and warnings
 
@@ -341,6 +390,10 @@ Positive underapproximations cannot support a negative composition claim. Pole `
 
 Sorting endpoints of facial edges destroys directed bipartite orientation information. Separator-crossing `C4` repair generation must preserve oriented face-edge roles.
 
+### PR-body-only results are not durable evidence
+
+A mathematical result written only in a PR body or comment is at risk of loss and lacks complete reproducibility. Such claims must be copied into the canonical snapshot, a dated report, and machine-readable evidence with explicit provenance status.
+
 ## 10. Retired or strongly deprioritized strategies
 
 Do not restart these without a new mathematical reason:
@@ -350,8 +403,9 @@ Do not restart these without a new mathematical reason:
 3. ordinary natural four-terminal missing-`Q` searches as the sole attack;
 4. direct six-terminal gluing based on sampled zero signatures;
 5. unrestricted adjacent-edge-deletion four-pole search;
-6. the completed source-2 separator-crossing `C4` repair family;
-7. blind growth to larger whole graphs without an exact obstruction objective.
+6. repeated composition of the exact 8-cycle annular swap relation;
+7. the completed source-2 separator-crossing `C4` repair family;
+8. blind growth to larger whole graphs without an exact obstruction objective.
 
 Heuristics may still rank cases, but they cannot determine negative classifications.
 
@@ -385,7 +439,7 @@ Do not rely on the label alone.
 
 ## 12. Current CI and workflow state
 
-As of 2026-08-03 16:14 UTC at authoritative head `7b21af64...`:
+As of 2026-08-03 16:14 UTC at pre-continuity head `7b21af64...`:
 
 - canonical cyclic-cut regression: success;
 - three-edge facial obstruction proof: success;
@@ -394,6 +448,8 @@ As of 2026-08-03 16:14 UTC at authoritative head `7b21af64...`:
 - full natural-cut Q tests at orders 96 and 100: in progress;
 - repaired order-94 jobs: generation completed, downstream analysis skipped because shards were empty or non-actionable under the workflow conditions;
 - repaired order-98 generation jobs: in progress.
+
+The PR body still names older Grand-v3 run `30727791413`; live workflow inspection supersedes that stale identifier.
 
 Workflow state is time-sensitive. The next agent must re-check it and update this section when the run resolves.
 
@@ -412,6 +468,8 @@ Unique work remains on diverged auxiliary branches:
 | `agent/order94-98-expansion-fallback` | exact-order expansion fallback implementation and workflow |
 | `agent/whole-graph-sat-proof` | `search/sat_verify_hamiltonian_candidates.py`, a 387-line whole-graph proof checker |
 
+The exact annular swap and semigroup result also had a continuity defect: it was present in the PR body but no dedicated raw artifact was located. It is now preserved as a provenance-incomplete checkpoint pending recovery.
+
 Integration rule:
 
 - do not merge auxiliary branches wholesale;
@@ -429,6 +487,7 @@ Integration rule:
 | Ternary obstruction | `docs/EXACT_SIX_POLE_AND_CONNECTIVITY_REPAIR_2026-08-02.md` | `results/2026-08-02/three_edge_face_candidates.json` |
 | Exact six-pole languages and source-2 repair | `docs/EXACT_SIX_POLE_AND_CONNECTIVITY_REPAIR_2026-08-02.md` | `results/2026-08-02/exact_six_pole_and_repair_summary.json` |
 | Exact six-terminal tail | `docs/SIX_TERMINAL_EXACT_TAIL_2026-08-03.md` | `results/2026-08-03/six_terminal_exact_tail_summary.json` |
+| Annular swap and semigroup checkpoint | `docs/ANNULAR_SWAP_SEMIGROUP_CHECKPOINT_2026-08-03.md` | `results/2026-08-03/annular_swap_semigroup_checkpoint.json` |
 | Retraction | `docs/CANONICAL_STRUCTURAL_SEARCH_2026-08-01.md` | `results/2026-08-01/solver_discrepancy_retraction.json` |
 | Chronology | `docs/RESEARCH_LOG.md` | dated result directories |
 
@@ -459,6 +518,10 @@ The first 655 correctly oriented C4 repairs all became Hamiltonian-compatible.
 
 The six-terminal sampled-zero route was eliminated exactly by a recurring
 nine-state compatibility kernel.
+
+The exact 8-cycle annular Q block is a swap relation whose powers become full;
+it is not an annihilating obstruction. Its original raw provenance still must
+be recovered or reproduced.
 
 The next attack is the sparsest remaining connectivity-repair family,
 especially one-closure cases, with source 57 first materialized as a durable
