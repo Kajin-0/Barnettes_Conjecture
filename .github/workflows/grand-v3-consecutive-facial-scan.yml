@@ -1,0 +1,197 @@
+name: Grand-v3 consecutive facial proof scan
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/grand-v3-consecutive-facial-scan.yml
+      - search/run_consecutive_face_campaign.py
+      - search/generate_consecutive_face_cases.py
+      - search/sat_verify_face_constraints.py
+      - results/2026-08-03/grand_v3_retained_parents.json
+      - requirements.txt
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: grand-v3-consecutive-facial-scan
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    name: Order ${{ matrix.order }} retained parents
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - order: 96
+            artifact_id: 8859456435
+            artifact_sha256: dc0db45b6e862437a04d1a4b2f8b192bc7d905682b4ece86d772e6f10bb73bb3
+            record_path: results/grand-q-first-v3/broad/96/verified_canonical_96.json
+            expected_cases: 3456
+          - order: 100
+            artifact_id: 8860190315
+            artifact_sha256: be7d0927c32594829115354db2788c5992bf69c720c41ff9e7641ee99d30514f
+            record_path: results/grand-q-first-v3/broad/100/verified_canonical_100.json
+            expected_cases: 3600
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install pinned dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python - <<'PY'
+          import networkx, pysat
+          from pysat.solvers import Solver
+          print('networkx', networkx.__version__)
+          print('python-sat', pysat.__version__)
+          with Solver(name='g4') as solver:
+              solver.add_clause([1])
+              assert solver.solve()
+          PY
+
+      - name: Download exact Grand-v3 parent artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p source-artifact
+          curl --fail --location \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${{ matrix.artifact_id }}/zip" \
+            --output source-artifact.zip
+          echo "${{ matrix.artifact_sha256 }}  source-artifact.zip" | sha256sum --check
+          unzip -q source-artifact.zip -d source-artifact
+          test -f "source-artifact/${{ matrix.record_path }}"
+
+      - name: Build independent proof toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git tools/drat-trim
+          make -C tools/drat-trim
+          test -x tools/drat-trim/drat-trim
+          git -C tools/drat-trim rev-parse HEAD | tee drat-trim.commit
+
+          git clone --depth 1 https://github.com/arminbiere/cadical.git tools/cadical
+          cd tools/cadical
+          ./configure
+          make -j2
+          test -x build/cadical
+          build/cadical --version
+          git rev-parse HEAD | tee ../../cadical.commit
+
+      - name: Exhaustively verify every consecutive facial path
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="results/2026-08-03/grand-v3-consecutive/order-${{ matrix.order }}"
+          mkdir -p "${ROOT}"
+          python search/run_consecutive_face_campaign.py \
+            --parents "source-artifact/${{ matrix.record_path }}" \
+            --output-dir "${ROOT}" \
+            --order "${{ matrix.order }}" \
+            --solver g4 \
+            --proof-solver tools/cadical/build/cadical \
+            --drat-trim tools/drat-trim/drat-trim \
+            --max-rounds 20000 \
+            --proof-timeout 1800 \
+            --max-parents 12 \
+            --max-cases-per-parent 1000 \
+            | tee "${ROOT}/campaign.log"
+
+      - name: Enforce complete classification and write manifest
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib, platform, subprocess
+          import networkx
+          try:
+              import pysat
+              pysat_version=pysat.__version__
+          except Exception:
+              pysat_version=None
+
+          order=${{ matrix.order }}
+          expected=${{ matrix.expected_cases }}
+          root=pathlib.Path(f'results/2026-08-03/grand-v3-consecutive/order-{order}')
+          root.mkdir(parents=True,exist_ok=True)
+          summary_path=root/'campaign_summary.json'
+          summary=json.loads(summary_path.read_text()) if summary_path.exists() else None
+          files=[]
+          for path in sorted(root.rglob('*')):
+              if path.is_file():
+                  files.append({
+                      'path':str(path),
+                      'bytes':path.stat().st_size,
+                      'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),
+                  })
+          manifest={
+              'campaign':'grand-v3-retained-parent-consecutive-facial-scan',
+              'order':order,
+              'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+              'source_workflow_run_id':30810878974,
+              'source_artifact_id':${{ matrix.artifact_id }},
+              'source_artifact_sha256':'${{ matrix.artifact_sha256 }}',
+              'source_record_path':'${{ matrix.record_path }}',
+              'summary':summary,
+              'theorem_complete_breakthrough':bool(summary and summary.get('breakthroughs')),
+              'counterexample_found':False,
+              'drat_trim_commit':pathlib.Path('drat-trim.commit').read_text().strip() if pathlib.Path('drat-trim.commit').exists() else None,
+              'cadical_commit':pathlib.Path('cadical.commit').read_text().strip() if pathlib.Path('cadical.commit').exists() else None,
+              'software':{
+                  'python':platform.python_version(),
+                  'networkx':networkx.__version__,
+                  'python_sat':pysat_version,
+              },
+              'files':files,
+          }
+          (root/'manifest.json').write_text(json.dumps(manifest,indent=2))
+          print(json.dumps(summary,indent=2))
+          if summary is None:
+              raise SystemExit('campaign summary missing')
+          if summary.get('parents_attempted') != 12:
+              raise SystemExit(f'parent count mismatch: {summary.get("parents_attempted")}')
+          if summary.get('cases_attempted') != expected:
+              raise SystemExit(f'case count mismatch: {summary.get("cases_attempted")} != {expected}')
+          if not summary.get('complete_classification'):
+              raise SystemExit(f'incomplete classifications: {summary.get("incomplete_parents")}')
+          accepted=sum(summary.get('classification_counts',{}).get(k,0) for k in ('verified_positive','certified_negative'))
+          if accepted != expected:
+              raise SystemExit(f'accepted classification mismatch: {accepted} != {expected}')
+          PY
+
+      - name: Upload complete campaign evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: grand-v3-consecutive-order-${{ matrix.order }}-${{ github.sha }}
+          path: |
+            results/2026-08-03/grand-v3-consecutive/order-${{ matrix.order }}
+            results/2026-08-03/grand_v3_retained_parents.json
+            search/run_consecutive_face_campaign.py
+            search/generate_consecutive_face_cases.py
+            search/sat_verify_face_constraints.py
+            drat-trim.commit
+            cadical.commit
+          if-no-files-found: error
+          retention-days: 90
