@@ -299,3 +299,106 @@ The stronger continuation is dual-track:
 ### Next action
 
 Repair sparse generation using an output-flushing plantri wrapper and lower-modulus adaptive shards. In parallel, expand the verified orders to all natural cut sides in a broader parent set and implement a reproducible multi-interface transfer search.
+
+---
+
+## 2026-08-03 16:14 UTC — Canonical current-state snapshot and continuity correction
+
+**Status:** `verified` repository-state correction  
+**Counterexample found:** No
+
+### Objective
+
+Correct a durable handoff failure discovered when a new agent reconstructed the project from the repository and pull requests.
+
+The repository contained later exact results and strategic pivots, but the files claiming to be the authoritative handoff still stopped at the early order-92 and higher-order-Q phases. Important context had migrated into technical reports, result files, PR comments, and diverged branches without being incorporated into one current canonical location.
+
+### Failure observed
+
+`AGENTS.md` and this research log did not contain the later project state, including:
+
+- the proof-certified ternary facial obstruction in order-100 candidate 489;
+- exact six-pole languages for poles `A`, `B`, and `C`;
+- the correction of the omitted positive pole-`C` state;
+- 65 planar cofacial five-pole binary-obstruction near-counterexamples failing only 3-connectivity;
+- complete elimination of the 655-repair source-2 family;
+- the exact six-terminal tail and recurring nine-state kernel;
+- retirement of matching rarity as a boundary-language sparsity objective;
+- the current one-closure connectivity-repair direction;
+- stranded implementation and evidence on auxiliary branches;
+- the fact that the discussion-derived `source-57` target had not been materialized as a tracked reproducible object.
+
+The prior rule requiring agents to “update the handoff” was insufficient because it did not designate one canonical mutable snapshot or enforce an end-of-session reconciliation transaction.
+
+### Repository correction
+
+Created:
+
+```text
+docs/CURRENT_STATE.md
+```
+
+This file is now the single canonical mutable snapshot of:
+
+- the strongest validated mathematical results;
+- exact metrics and evidence paths;
+- permanent warnings and retractions;
+- retired strategies;
+- the current construction route;
+- the immediate active target;
+- current workflow state;
+- branch and integration debt;
+- the exact pickup sequence for the next agent.
+
+Updated:
+
+- `AGENTS.md` to make the canonical snapshot mandatory and define a hard state-retention invariant;
+- `README.md` so every repository entry path points to the snapshot;
+- `agent.md` so tool-oriented agents read the snapshot before work;
+- `docs/RESEARCH_LOG.md` with this append-only incident and correction record.
+
+Commits:
+
+```text
+522bb33e86a889d17b04f1fad34b69796db62ac0  docs: add canonical current research state
+83258d5a0f6fcdd065023935ae220df047aaa503  docs: make current state checkpoint mandatory
+4dcd6c5185ac1455b420c21af61972927b5bb9e5  docs: point entry path to canonical state snapshot
+f3fc62b17e9f3592586f020af774cc5d95e5685c  docs: update compact agent entry point
+```
+
+### New mandatory invariant
+
+A material insight is not durably incorporated until all applicable parts of the following transaction are complete:
+
+1. update `docs/CURRENT_STATE.md` with finding, confidence, evidence, interpretation, limitations, strategic consequence, and next action;
+2. append this chronological log;
+3. publish machine-readable evidence under `results/YYYY-MM-DD/` when data was produced;
+4. update the relevant technical report;
+5. checkpoint PR #1;
+6. commit and publish.
+
+Before ending a work session, the active agent must compare the canonical snapshot against the newest commits, reports, results, PR comments, auxiliary branches, and workflow outcomes. Any discrepancy must be resolved in the repository.
+
+### Current strategic state captured
+
+The canonical snapshot now records the active route:
+
+```text
+certified cofacial H^{+--}
+        -> 3-connected cofacial H^{+-}
+        -> Kelmans amplification
+        -> independently certified Barnette counterexample
+```
+
+The next exact attack is the sparsest remaining connectivity-repair family, prioritizing one-closure cases. Before computation, the discussion-derived `source-57` target must be committed with graph encoding, pole permutation, separator geometry, target edges, outside closure, repair specification, and exact reproduction command.
+
+### Limitations
+
+This correction captures repository state available through the authoritative branch, all open PRs, accessible branch comparisons, reports, result summaries, PR comments, and current workflow metadata. Workflow state remains time-sensitive and must be updated when Grand Q-first v3 resolves.
+
+### Next action
+
+1. Add a PR #1 checkpoint linking the canonical snapshot and continuity rule.
+2. Materialize the `source-57` one-closure target as a committed run specification and machine-readable candidate record.
+3. Selectively integrate still-valid proof and search artifacts stranded on auxiliary branches.
+4. Reconcile `docs/CURRENT_STATE.md` whenever the active workflows complete or the construction target changes.
