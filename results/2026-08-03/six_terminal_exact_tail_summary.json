@@ -1,0 +1,31 @@
+{
+  "date_utc": "2026-08-03",
+  "classification": "exact_positive_and_exact_signature_enumeration",
+  "counterexample_found": false,
+  "pilot_artifact_sha256": "d6af18c8dce8252a2b9ef36b1634c90b3f6938525386ce89704a14953196d6dc",
+  "exact_patches": [
+    {"key":"g5-c111-s0","patch_n":44,"state_count":23,"perfect_matchings_enumerated":58556,"elapsed_s":5.894659042358398},
+    {"key":"g5-c78-s0","patch_n":44,"state_count":24,"perfect_matchings_enumerated":56230,"elapsed_s":5.672437429428101},
+    {"key":"g5-c246-s0","patch_n":46,"state_count":24,"perfect_matchings_enumerated":87521,"elapsed_s":7.966248512268066},
+    {"key":"g5-c80-s0","patch_n":46,"state_count":24,"perfect_matchings_enumerated":90649,"elapsed_s":8.234744548797607},
+    {"key":"g1-c140-s0","patch_n":48,"state_count":23,"perfect_matchings_enumerated":144261,"elapsed_s":12.366377592086792},
+    {"key":"g1-c82-s0","patch_n":48,"state_count":24,"perfect_matchings_enumerated":137706,"elapsed_s":12.29408311843872},
+    {"key":"g5-c179-s0","patch_n":48,"state_count":24,"perfect_matchings_enumerated":146816,"elapsed_s":12.802005290985107},
+    {"key":"g1-c174-s0","patch_n":50,"state_count":24,"perfect_matchings_enumerated":233064,"elapsed_s":19.861185312271118},
+    {"key":"g2-c140-s0","patch_n":50,"state_count":23,"perfect_matchings_enumerated":240078,"elapsed_s":20.04699730873108}
+  ],
+  "exact_patch_count": 9,
+  "state_count_histogram": {"23":3,"24":6},
+  "pair_maps_checked": 540,
+  "minimum_exact_compatibility": 9,
+  "minimum_record": {
+    "a":"g5-c111-s0",
+    "b":"g5-c111-s0",
+    "mapping":[1,2,3,4,5,0],
+    "compatibility":9
+  },
+  "compatibility_histogram": {"9":12,"10":12,"11":48,"12":8,"13":22,"14":140,"15":106,"16":42,"17":18,"20":132},
+  "summary_sha256": "5a83c3b453b81be1e4327d7dd94f00918f43eb3c267aad69f18f034833fc3689",
+  "interpretation": "The pilot zero-hit signatures were severe sampling false negatives. Every exactly completed patch realizes 23 or 24 of the 50 nominal states, and every tested dihedral gluing retains at least nine compatible Hamiltonian traces.",
+  "analytical_pivot": "Do not prioritize six-terminal patches by randomized perfect-matching hit count. Continue with exact property-directed constraints or the one-closure source-57 H+- repair frontier."
+}
