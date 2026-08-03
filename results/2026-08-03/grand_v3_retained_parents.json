@@ -1,1 +1,28 @@
-PLACEHOLDER
+{
+  "date_utc": "2026-08-03",
+  "status": "artifact_backed_parent_manifest",
+  "campaign": "grand-v3-retained-parent-consecutive-facial-scan",
+  "source_workflow_run_id": 30810878974,
+  "parents": {
+    "order_96": {
+      "count": 12,
+      "artifact_id": 8859456435,
+      "artifact_sha256": "dc0db45b6e862437a04d1a4b2f8b192bc7d905682b4ece86d772e6f10bb73bb3",
+      "graph_record_path": "results/grand-q-first-v3/broad/96/verified_canonical_96.json"
+    },
+    "order_100": {
+      "count": 12,
+      "artifact_id": 8860190315,
+      "artifact_sha256": "be7d0927c32594829115354db2788c5992bf69c720c41ff9e7641ee99d30514f",
+      "graph_record_path": "results/grand-q-first-v3/broad/100/verified_canonical_100.json"
+    }
+  },
+  "total_parent_graphs": 24,
+  "retention_warning": "The exact graph6 records remain inside the cited workflow artifacts. Any certified negative parent must be copied immediately into a permanent committed candidate file with its graph6 hash and proof provenance.",
+  "classification_policy": {
+    "positive": "explicit Hamiltonian-cycle witness independently validated",
+    "negative": "CaDiCaL UNSAT proof accepted by drat-trim",
+    "timeout_or_failure": "unknown"
+  },
+  "counterexample_found": false
+}
