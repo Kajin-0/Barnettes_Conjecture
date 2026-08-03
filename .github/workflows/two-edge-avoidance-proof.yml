@@ -1,0 +1,192 @@
+name: Candidate-489 two-edge avoidance proof
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/two-edge-avoidance-proof.yml
+      - search/generate_two_edge_avoidance_cases.py
+      - search/sat_verify_face_constraints.py
+      - results/2026-08-02/three_edge_face_candidates.json
+      - requirements.txt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: candidate489-two-edge-avoidance-proof
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify eight unavoidable cofacial edge pairs
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install pinned dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python - <<'PY'
+          from pysat.solvers import Solver
+          with Solver(name='g4') as solver:
+              solver.add_clause([1])
+              assert solver.solve()
+          PY
+
+      - name: Build independent proof toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git tools/drat-trim
+          make -C tools/drat-trim
+          test -x tools/drat-trim/drat-trim
+          git -C tools/drat-trim rev-parse HEAD | tee drat-trim.commit
+
+          git clone --depth 1 https://github.com/arminbiere/cadical.git tools/cadical
+          cd tools/cadical
+          ./configure
+          make -j2
+          test -x build/cadical
+          build/cadical --version
+          git rev-parse HEAD | tee ../../cadical.commit
+
+      - name: Generate exact candidate cases
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="results/2026-08-03/two-edge-avoidance-candidate489"
+          mkdir -p "${ROOT}"
+          python search/generate_two_edge_avoidance_cases.py \
+            --source-input results/2026-08-02/three_edge_face_candidates.json \
+            --output "${ROOT}/cases.json" \
+            | tee "${ROOT}/generation.log"
+          python - <<'PY'
+          import json, pathlib
+          path=pathlib.Path('results/2026-08-03/two-edge-avoidance-candidate489/cases.json')
+          data=json.loads(path.read_text())
+          assert len(data['cases']) == 8
+          assert all(not case['include_edges'] and len(case['exclude_edges']) == 2 for case in data['cases'])
+          assert min(case['local_face_masks_extending_constraint'] for case in data['cases']) >= 21
+          PY
+
+      - name: Independently prove every two-edge case
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="results/2026-08-03/two-edge-avoidance-candidate489"
+          python search/sat_verify_face_constraints.py \
+            --input "${ROOT}/cases.json" \
+            --output-dir "${ROOT}/proof" \
+            --solver g4 \
+            --proof-solver tools/cadical/build/cadical \
+            --drat-trim tools/drat-trim/drat-trim \
+            --max-rounds 20000 \
+            --proof-timeout 1800 \
+            --max-cases 100 \
+            | tee "${ROOT}/verification.log"
+
+      - name: Enforce eight checked negative proofs
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib, platform, subprocess
+          import networkx
+          try:
+              import pysat
+              pysat_version=pysat.__version__
+          except Exception:
+              pysat_version=None
+
+          root=pathlib.Path('results/2026-08-03/two-edge-avoidance-candidate489')
+          root.mkdir(parents=True,exist_ok=True)
+          cases_path=root/'cases.json'
+          summary_path=root/'proof'/'face_constraint_verification_summary.json'
+          cases=json.loads(cases_path.read_text()) if cases_path.exists() else None
+          verification=json.loads(summary_path.read_text()) if summary_path.exists() else None
+          results=verification.get('results',[]) if verification else []
+          negatives=[r for r in results if r.get('classification')=='certified_negative']
+          positives=[r for r in results if r.get('classification')=='verified_positive']
+          incomplete=[r for r in results if r.get('classification') not in {'certified_negative','verified_positive'}]
+
+          files=[]
+          for path in sorted(root.rglob('*')):
+              if path.is_file():
+                  files.append({
+                      'path':str(path),
+                      'bytes':path.stat().st_size,
+                      'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),
+                  })
+          manifest={
+              'campaign':'candidate489-two-edge-avoidance-proof',
+              'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+              'source_file':'results/2026-08-02/three_edge_face_candidates.json',
+              'case_derivation':cases.get('derivation') if cases else None,
+              'verification_summary':verification.get('summary') if verification else None,
+              'certified_negative_count':len(negatives),
+              'verified_positive_contradictions':len(positives),
+              'incomplete_count':len(incomplete),
+              'certified_pairs':[
+                  {
+                      'case_id':r['case_id'],
+                      'exclude_edges':r['exclude_edges'],
+                      'cnf_sha256':r.get('cnf_sha256'),
+                      'proof_sha256':r.get('proof_sha256'),
+                      'proof_verified':r.get('proof_verification',{}).get('verified',False),
+                  }
+                  for r in negatives
+              ],
+              'new_exact_relation':'For each certified pair, every Hamiltonian cycle contains at least one designated edge.',
+              'counterexample_found':False,
+              'drat_trim_commit':pathlib.Path('drat-trim.commit').read_text().strip() if pathlib.Path('drat-trim.commit').exists() else None,
+              'cadical_commit':pathlib.Path('cadical.commit').read_text().strip() if pathlib.Path('cadical.commit').exists() else None,
+              'software':{
+                  'python':platform.python_version(),
+                  'networkx':networkx.__version__,
+                  'python_sat':pysat_version,
+              },
+              'files':files,
+          }
+          (root/'manifest.json').write_text(json.dumps(manifest,indent=2))
+          print(json.dumps({
+              'certified_negative':len(negatives),
+              'positive_contradictions':len(positives),
+              'incomplete':len(incomplete),
+              'pairs':manifest['certified_pairs'],
+          },indent=2))
+          if len(results) != 8:
+              raise SystemExit(f'expected 8 results, found {len(results)}')
+          if len(negatives) != 8 or positives or incomplete:
+              raise SystemExit(
+                  f'proof target not met: negative={len(negatives)} '
+                  f'positive={len(positives)} incomplete={len(incomplete)}'
+              )
+          PY
+
+      - name: Upload complete proof evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: candidate489-two-edge-avoidance-${{ github.sha }}
+          path: |
+            results/2026-08-03/two-edge-avoidance-candidate489
+            results/2026-08-02/three_edge_face_candidates.json
+            search/generate_two_edge_avoidance_cases.py
+            search/sat_verify_face_constraints.py
+            drat-trim.commit
+            cadical.commit
+          if-no-files-found: error
+          retention-days: 90
