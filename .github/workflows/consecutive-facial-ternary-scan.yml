@@ -1,0 +1,199 @@
+name: Consecutive facial ternary proof scan
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/consecutive-facial-ternary-scan.yml
+      - search/generate_consecutive_face_cases.py
+      - search/sat_verify_face_constraints.py
+      - results/2026-08-02/three_edge_face_candidates.json
+      - requirements.txt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: consecutive-facial-ternary-scan
+  cancel-in-progress: true
+
+jobs:
+  candidate489:
+    name: Exhaustive candidate-489 consecutive triple scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install pinned dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python - <<'PY'
+          import networkx, pysat
+          from pysat.solvers import Solver
+          print('networkx', networkx.__version__)
+          print('python-sat', pysat.__version__)
+          with Solver(name='g4') as solver:
+              solver.add_clause([1])
+              assert solver.solve()
+          PY
+
+      - name: Build independent proof toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git tools/drat-trim
+          make -C tools/drat-trim
+          test -x tools/drat-trim/drat-trim
+          git -C tools/drat-trim rev-parse HEAD | tee drat-trim.commit
+
+          git clone --depth 1 https://github.com/arminbiere/cadical.git tools/cadical
+          cd tools/cadical
+          ./configure
+          make -j2
+          test -x build/cadical
+          build/cadical --version
+          git rev-parse HEAD | tee ../../cadical.commit
+
+      - name: Generate exhaustive consecutive facial cases
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="results/2026-08-03/consecutive-facial-candidate489"
+          mkdir -p "${ROOT}"
+          python search/generate_consecutive_face_cases.py \
+            --source-input results/2026-08-02/three_edge_face_candidates.json \
+            --output "${ROOT}/cases.json" \
+            --source-label candidate489 \
+            | tee "${ROOT}/generation.log"
+
+          python - <<'PY'
+          import json, pathlib
+          path=pathlib.Path('results/2026-08-03/consecutive-facial-candidate489/cases.json')
+          data=json.loads(path.read_text())
+          assert data['graph_validation']['barnette_predicates']
+          assert data['face_summary']['faces'] == 52, data['face_summary']
+          assert data['face_summary']['face_edge_occurrences'] == 300, data['face_summary']
+          assert data['case_summary']['facial_path_occurrences'] == 300, data['case_summary']
+          assert data['case_summary']['unique_edge_constraint_triples'] == 300, data['case_summary']
+          PY
+
+      - name: Verify every consecutive facial constraint
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="results/2026-08-03/consecutive-facial-candidate489"
+          python search/sat_verify_face_constraints.py \
+            --input "${ROOT}/cases.json" \
+            --output-dir "${ROOT}/proof" \
+            --solver g4 \
+            --proof-solver tools/cadical/build/cadical \
+            --drat-trim tools/drat-trim/drat-trim \
+            --max-rounds 20000 \
+            --proof-timeout 1800 \
+            --max-cases 1000 \
+            | tee "${ROOT}/verification.log"
+
+      - name: Enforce complete classification and write manifest
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib, platform, subprocess
+          import networkx
+          try:
+              import pysat
+              pysat_version=pysat.__version__
+          except Exception:
+              pysat_version=None
+
+          root=pathlib.Path('results/2026-08-03/consecutive-facial-candidate489')
+          root.mkdir(parents=True,exist_ok=True)
+          cases_path=root/'cases.json'
+          summary_path=root/'proof'/'face_constraint_verification_summary.json'
+          cases=json.loads(cases_path.read_text()) if cases_path.exists() else None
+          verification=json.loads(summary_path.read_text()) if summary_path.exists() else None
+          results=verification.get('results',[]) if verification else []
+          accepted={'verified_positive','certified_negative'}
+          incomplete=[r for r in results if r.get('classification') not in accepted]
+          negatives=[r for r in results if r.get('classification')=='certified_negative']
+          positives=[r for r in results if r.get('classification')=='verified_positive']
+
+          files=[]
+          for path in sorted(root.rglob('*')):
+              if path.is_file():
+                  files.append({
+                      'path':str(path),
+                      'bytes':path.stat().st_size,
+                      'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),
+                  })
+          manifest={
+              'campaign':'candidate489-consecutive-facial-ternary-scan',
+              'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+              'source_file':'results/2026-08-02/three_edge_face_candidates.json',
+              'case_generation':cases.get('case_summary') if cases else None,
+              'face_summary':cases.get('face_summary') if cases else None,
+              'verification_summary':verification.get('summary') if verification else None,
+              'verified_positive_count':len(positives),
+              'certified_negative_count':len(negatives),
+              'certified_negative_case_ids':[r['case_id'] for r in negatives],
+              'incomplete_count':len(incomplete),
+              'incomplete_case_ids':[r.get('case_id') for r in incomplete],
+              'theorem_complete_breakthrough':bool(negatives),
+              'counterexample_found':False,
+              'drat_trim_commit':pathlib.Path('drat-trim.commit').read_text().strip() if pathlib.Path('drat-trim.commit').exists() else None,
+              'cadical_commit':pathlib.Path('cadical.commit').read_text().strip() if pathlib.Path('cadical.commit').exists() else None,
+              'software':{
+                  'python':platform.python_version(),
+                  'networkx':networkx.__version__,
+                  'python_sat':pysat_version,
+              },
+              'classification_policy':{
+                  'positive':'independently validated Hamiltonian-cycle edge witness',
+                  'negative':'CaDiCaL final-CNF UNSAT proof accepted by drat-trim',
+                  'timeout_or_failure':'unknown or provisional and causes workflow failure',
+              },
+              'files':files,
+          }
+          (root/'manifest.json').write_text(json.dumps(manifest,indent=2))
+          print(json.dumps({
+              'positive':len(positives),
+              'certified_negative':len(negatives),
+              'incomplete':len(incomplete),
+              'negative_case_ids':manifest['certified_negative_case_ids'],
+          },indent=2))
+
+          expected=cases['case_summary']['facial_path_occurrences'] if cases else None
+          if not verification:
+              raise SystemExit('verification summary missing')
+          if len(results) != expected:
+              raise SystemExit(f'classification count mismatch: {len(results)} != {expected}')
+          if incomplete:
+              raise SystemExit(f'incomplete classifications: {manifest["incomplete_case_ids"]}')
+          PY
+
+      - name: Upload complete proof evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: consecutive-facial-candidate489-${{ github.sha }}
+          path: |
+            results/2026-08-03/consecutive-facial-candidate489
+            results/2026-08-02/three_edge_face_candidates.json
+            search/generate_consecutive_face_cases.py
+            search/sat_verify_face_constraints.py
+            drat-trim.commit
+            cadical.commit
+          if-no-files-found: error
+          retention-days: 90
