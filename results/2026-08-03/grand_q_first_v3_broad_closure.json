@@ -1,0 +1,54 @@
+{
+  "date_utc": "2026-08-03",
+  "status": "verified",
+  "campaign": "grand-q-first-v3-broad-closure",
+  "workflow_run_id": 30810878974,
+  "counterexample_found": false,
+  "orders": {
+    "96": {
+      "graphs_analyzed": 12,
+      "patch_sides_selected": 16852,
+      "q_states_attempted": 33704,
+      "verified_positive_q_states": 33704,
+      "provisional_negative_q_states": 0,
+      "unknown_q_states": 0,
+      "independently_certified_missing_q_states": 0,
+      "artifact_id": 8859456435,
+      "artifact_sha256": "dc0db45b6e862437a04d1a4b2f8b192bc7d905682b4ece86d772e6f10bb73bb3"
+    },
+    "100": {
+      "graphs_analyzed": 12,
+      "patch_sides_selected": 18892,
+      "q_states_attempted": 37784,
+      "verified_positive_q_states": 37784,
+      "provisional_negative_q_states": 0,
+      "unknown_q_states": 0,
+      "independently_certified_missing_q_states": 0,
+      "artifact_id": 8860190315,
+      "artifact_sha256": "be7d0927c32594829115354db2788c5992bf69c720c41ff9e7641ee99d30514f"
+    }
+  },
+  "combined": {
+    "graphs_analyzed": 24,
+    "patch_sides_selected": 35744,
+    "q_states_attempted": 71488,
+    "verified_positive_q_states": 71488,
+    "provisional_negative_q_states": 0,
+    "unknown_q_states": 0,
+    "independently_certified_missing_q_states": 0
+  },
+  "repaired_generation": {
+    "orders": [94, 98],
+    "residues_mod_64": [0, 7, 15, 23, 31, 39, 47, 55],
+    "jobs": 16,
+    "job_conclusions": "success",
+    "downstream_q_analysis": "skipped because the generated shards supplied no actionable parent inputs under the workflow conditions",
+    "mathematical_interpretation": "unknown for the unsampled orders; generation outcome is not evidence about Q states or Hamiltonicity"
+  },
+  "interpretation": {
+    "validated": "Every one of the 71488 natural cut-side Q states tested in the 24 retained order-96/order-100 parents has an independently validated positive witness.",
+    "limitation": "This is not exhaustive over all Barnette graphs at either order.",
+    "strategic_decision": "Retire ordinary natural four-terminal missing-Q search as an active breakthrough route for these parent sets. Prioritize direct amplification of the proof-certified cofacial ternary obstruction."
+  },
+  "next_direction": "docs/FACE_INTERNAL_TERNARY_AMPLIFIER_2026-08-03.md"
+}
