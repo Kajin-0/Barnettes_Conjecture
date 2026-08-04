@@ -1,0 +1,156 @@
+name: Dual face-cut obstruction proof
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/adversarial-search-v2
+    paths:
+      - .github/workflows/dual-face-cut-obstruction.yml
+      - search/dual_face_cut_obstruction.py
+      - search/sat_verify_face_constraints.py
+      - results/2026-08-02/three_edge_face_candidates.json
+      - requirements.txt
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/dual-face-cut-obstruction.yml
+      - search/dual_face_cut_obstruction.py
+      - search/sat_verify_face_constraints.py
+      - results/2026-08-02/three_edge_face_candidates.json
+      - requirements.txt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dual-face-cut-obstruction-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  prove:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install pinned dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m py_compile search/dual_face_cut_obstruction.py
+          python -m py_compile search/sat_verify_face_constraints.py
+
+      - name: Build independent proof toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git tools/drat-trim
+          make -C tools/drat-trim
+          test -x tools/drat-trim/drat-trim
+          git -C tools/drat-trim rev-parse HEAD | tee drat-trim.commit
+
+          git clone --depth 1 https://github.com/arminbiere/cadical.git tools/cadical
+          cd tools/cadical
+          ./configure
+          make -j2
+          test -x build/cadical
+          build/cadical --version
+          git rev-parse HEAD | tee ../../cadical.commit
+
+      - name: Run independent dual proof campaign
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=results/2026-08-04/dual-face-cut-obstruction
+          mkdir -p "${ROOT}"
+          python search/dual_face_cut_obstruction.py \
+            --input results/2026-08-02/three_edge_face_candidates.json \
+            --output-dir "${ROOT}" \
+            --solver g4 \
+            --proof-solver tools/cadical/build/cadical \
+            --drat-trim tools/drat-trim/drat-trim \
+            --max-rounds 10000 \
+            --proof-timeout 1800 \
+            | tee "${ROOT}/campaign.log"
+
+      - name: Enforce fail-closed result
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          path=pathlib.Path('results/2026-08-04/dual-face-cut-obstruction/dual_face_cut_summary.json')
+          data=json.loads(path.read_text())
+          summary=data['summary']
+          assert summary['dual_validation']['even_plane_triangulation']
+          assert summary['source_face']['dual_degree']==12
+          assert summary['principal_patterns_attempted']==8
+          assert summary['source_cases_attempted']==6
+          assert summary['source_cases_all_independently_certified']
+          assert summary['remaining_unknown_or_provisional']==0
+          for result in data['principal_results']+data['source_results']:
+              if result['classification']=='verified_positive':
+                  assert result['witness_validation']['valid']
+                  assert result['witness_validation']['dual_induced_trees']
+              elif result['classification']=='certified_negative':
+                  assert result['proof_verification']['verified']
+              else:
+                  raise AssertionError(result)
+          print(json.dumps(summary,indent=2))
+          PY
+
+      - name: Write manifest
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib,platform,subprocess
+          import networkx
+          try:
+              import pysat
+              pysat_version=pysat.__version__
+          except Exception:
+              pysat_version=None
+          root=pathlib.Path('results/2026-08-04/dual-face-cut-obstruction')
+          files=[]
+          for path in sorted(root.rglob('*')):
+              if path.is_file():
+                  files.append({'path':str(path),'bytes':path.stat().st_size,'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
+          summary_path=root/'dual_face_cut_summary.json'
+          summary=json.loads(summary_path.read_text())['summary'] if summary_path.exists() else None
+          manifest={
+              'campaign':'dual-face-cut-obstruction',
+              'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+              'summary':summary,
+              'drat_trim_commit':pathlib.Path('drat-trim.commit').read_text().strip() if pathlib.Path('drat-trim.commit').exists() else None,
+              'cadical_commit':pathlib.Path('cadical.commit').read_text().strip() if pathlib.Path('cadical.commit').exists() else None,
+              'software':{'python':platform.python_version(),'networkx':networkx.__version__,'python_sat':pysat_version},
+              'files':files,
+          }
+          root.mkdir(parents=True,exist_ok=True)
+          (root/'manifest.json').write_text(json.dumps(manifest,indent=2))
+          PY
+
+      - name: Upload proof evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dual-face-cut-obstruction-${{ github.sha }}
+          path: |
+            results/2026-08-04/dual-face-cut-obstruction
+            results/2026-08-02/three_edge_face_candidates.json
+            search/dual_face_cut_obstruction.py
+            search/sat_verify_face_constraints.py
+            drat-trim.commit
+            cadical.commit
+          if-no-files-found: error
+          retention-days: 90
