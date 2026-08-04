@@ -1,0 +1,110 @@
+{
+  "date_utc": "2026-08-04",
+  "status": "independently witness-validated local exact classification; plantri/Actions reproduction pending",
+  "counterexample_found": false,
+  "scope": "Candidate 489 degree-12 dual-vertex substitutions with at most four inserted disk vertices, corresponding to primal orders 100, 102, 104, and 106.",
+  "source": {
+    "graph": "candidate 489",
+    "primal_order": 100,
+    "dual_order": 52,
+    "removed_dual_vertex_degree": 12,
+    "boundary_length": 12,
+    "dual_boundary_cyclic_order": [3, 6, 10, 18, 26, 29, 21, 16, 9, 5, 11, 2]
+  },
+  "method": {
+    "structural_basis": "The disk plus the removed apex is an even plane triangulation and therefore has a proper three-coloring. Boundary colors alternate. Color-class degree sums and rainbow-triangle constraints reduce k<=4 to finitely many polygonal decomposition types.",
+    "generation": "Exact parity-first polygonal enumeration, quotienting by boundary dihedral symmetry and internal-vertex permutations.",
+    "closure_maps_per_disk": 24,
+    "reduced_filter": "Closed dual is even and has vertex connectivity at least four.",
+    "hamiltonicity": "Exact perfect-matching complement recursion with early closed-subcycle pruning.",
+    "positive_policy": "Every positive stores an explicit selected-edge Hamiltonian-cycle witness, subsequently revalidated for edge membership, uniqueness, cardinality n, degree two, and connectedness.",
+    "negative_policy": "No negative occurred. A negative would remain provisional until independent primal and dual proof encodings and checked DRAT/LRAT."
+  },
+  "color_class_derivation": {
+    "disk_internal_faces": "10+2k",
+    "edge_counts_by_color_pair": {
+      "E01": "5+k",
+      "E02": "5+k",
+      "E12": "11+k"
+    },
+    "k1": ["one color-0 vertex"],
+    "k2": ["two color-0 vertices"],
+    "k3": ["three color-0 vertices", "two color-0 plus one boundary-colored vertex"],
+    "k4": ["four color-0 vertices", "three color-0 plus one boundary-colored vertex", "two color-0 plus one color-1 and one color-2 vertex"]
+  },
+  "families": [
+    {
+      "k": 1,
+      "primal_order": 100,
+      "disk_classes": 1,
+      "dihedral_maps": 24,
+      "dual_4connected_maps": 24,
+      "lower_connectivity_maps": 0,
+      "hamiltonian_maps": 24,
+      "interpretation": "The unique disk is the original 12-wheel; all 89,402 raw neighbor-set/pocket constructions reduce to this class under the parity filter."
+    },
+    {
+      "k": 2,
+      "primal_order": 102,
+      "disk_classes": 2,
+      "dihedral_maps": 48,
+      "dual_4connected_maps": 32,
+      "lower_connectivity_maps": 16,
+      "nonisomorphic_reduced_primal_graphs": 16,
+      "hamiltonian_maps": 32,
+      "interpretation": "No parity-valid disk contains the edge between the two internal vertices. Both classes are boundary-chord-separated unions of one-center pieces."
+    },
+    {
+      "k": 3,
+      "primal_order": 104,
+      "disk_classes": 14,
+      "dihedral_maps": 336,
+      "dual_4connected_maps": 192,
+      "lower_connectivity_maps": 144,
+      "hamiltonian_maps": 192,
+      "raw_constructions": {
+        "three_color0": 69,
+        "two_color0_one_boundary_color": 30
+      }
+    },
+    {
+      "k": 4,
+      "primal_order": 106,
+      "disk_classes": 43,
+      "dihedral_maps": 1032,
+      "dual_4connected_maps": 556,
+      "lower_connectivity_maps": 476,
+      "hamiltonian_maps": 556,
+      "subfamilies": [
+        {"name": "four_color0", "disk_classes": 17, "maps": 408, "dual_4connected": 120, "hamiltonian": 120},
+        {"name": "three_color0_one_boundary_color", "disk_classes": 23, "maps": 552, "dual_4connected": 388, "hamiltonian": 388},
+        {"name": "two_color0_one_color1_one_color2", "disk_classes": 3, "maps": 72, "dual_4connected": 48, "hamiltonian": 48}
+      ]
+    }
+  ],
+  "combined": {
+    "disk_classes": 60,
+    "dihedral_maps": 1440,
+    "dual_4connected_maps": 804,
+    "lower_connectivity_maps": 636,
+    "hamiltonian_4connected_maps": 804,
+    "negative": 0,
+    "unknown": 0,
+    "stored_witnesses_independently_revalidated": 804,
+    "invalid_witnesses": 0
+  },
+  "artifact_hashes": {
+    "local_evidence_archive_sha256": "f0b57269d7901f96bdfb7c4ea86c1b4a3def768f6a3a714e9ead5318064849bc",
+    "k2_disks_sha256": "118cbef2ef740faabdb2759200ff7c898b82a4e235c85f4de7da066d453c2b53",
+    "k3_disks_sha256": "4750f247c0e8fbe0448d99de45e5cfba38b139d2d9699c293c8a99631229ff12",
+    "k4_four_color0_disks_sha256": "923b12665dfc862c9a75496c3daa8b739b52710d8356807b8e5e1fe031f678b5",
+    "k4_three_color0_disks_sha256": "d162085fd91f9a22c4ef7cbe0e1c46b8d61600b69221ba7b4368f88415f616fc",
+    "k4_mixed_disks_sha256": "03633936282579da342822cb3f13c79cc4fe8ff19139f2b856a4c22d46d34dd9"
+  },
+  "limitations": [
+    "The parity-first structural enumeration has not yet been independently reproduced by plantri because GitHub Actions remained queue-blocked.",
+    "The result is complete relative to the stated three-color structural derivation; it is not a classification of all Barnette graphs through order 106.",
+    "No non-Hamiltonicity proof was required because every reduced closure had an explicit cycle."
+  ],
+  "next_target": "k=5 dual disks, corresponding to primal order 108, prioritized by color-class degree constraints and internal-edge structure."
+}
