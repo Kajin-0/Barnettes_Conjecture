@@ -2,19 +2,9 @@ name: Dual large-face prime implicate scan
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - agent/adversarial-search-v2
-    paths:
-      - .github/workflows/dual-face-implicate-scan.yml
-      - search/dual_face_implicate_scan.py
-      - search/dual_face_cut_obstruction.py
-      - search/sat_verify_face_constraints.py
-      - results/2026-08-02/three_edge_face_candidates.json
-      - requirements.txt
   pull_request:
     branches:
-      - main
+      - agent/dual-base-20260804
     paths:
       - .github/workflows/dual-face-implicate-scan.yml
       - search/dual_face_implicate_scan.py
@@ -35,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
-      - name: Check out research branch
+      - name: Check out execution branch
         uses: actions/checkout@v4
 
       - name: Set up Python
