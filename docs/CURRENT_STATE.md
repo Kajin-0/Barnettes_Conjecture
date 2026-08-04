@@ -2,66 +2,35 @@
 
 **Repository:** `Kajin-0/Barnettes_Conjecture`  
 **Authoritative branch:** `agent/adversarial-search-v2`  
-**Authoritative research PR:** PR #1, temporarily closed and unmerged to stop obsolete workflow fan-out  
-**Snapshot timestamp:** 2026-08-04 02:40 UTC  
+**Authoritative research PR:** PR #1, temporarily closed and unmerged  
+**Snapshot timestamp:** 2026-08-04 17:20 UTC  
 **Counterexample found:** No
 
-This is the single canonical mutable snapshot. Dated files under `docs/research-log/` preserve chronology. A mathematical result is not incorporated until its code, machine-readable evidence, proof policy, workflow state, hashes, and interpretation are committed.
+This is the canonical mutable snapshot. Dated reports and `docs/research-log/` preserve chronology. A counterexample claim remains prohibited without independent Barnette checks, exact primal and dual non-Hamiltonicity, and checked proof certificates.
 
-## 1. Objective and proof standard
+## 1. Objective and acceptance standard
 
-Barnette's conjecture states:
+Barnette's conjecture states that every simple cubic 3-connected bipartite planar graph is Hamiltonian.
 
-> Every simple cubic 3-connected bipartite planar graph is Hamiltonian.
+A counterexample requires:
 
-A counterexample claim requires:
+1. simplicity, cubicity, bipartiteness, planarity, and vertex connectivity at least three checked independently;
+2. exact whole-graph non-Hamiltonicity in a primal selected-edge formulation;
+3. exact failure of the dual two-induced-tree formulation;
+4. checked CaDiCaL DRAT/LRAT certificates or comparably transparent exhaustive certificates;
+5. graph6, edge list, construction manifest, software versions, commands, and hashes.
 
-1. independent verification of simplicity, cubicity, bipartiteness, planarity, and vertex connectivity at least three;
-2. exact whole-graph non-Hamiltonicity in the primal selected-edge formulation;
-3. exact nonexistence of a two-induced-tree coloring in the dual formulation;
-4. machine-checkable CaDiCaL proof certificates accepted by `drat-trim` or an equivalently independent checker;
-5. graph6, edge list, rotation system, construction manifest, source hashes, commands, software versions, and clean workflow reproduction.
+Timeouts, solver cutoffs, sampled misses, provisional infeasibility, malformed cases, and queued jobs are `unknown`.
 
-Timeouts, sampled misses, solver iteration limits, provisional infeasibility, malformed cases, and queued or interrupted jobs are always `unknown`.
+## 2. Strongest source: candidate 489
 
-## 2. Primary strategy: embedded dual substitution around a mandatory large face
-
-The strongest current route is:
-
-```text
-candidate 489 certified facial obstruction
-    -> dualize to an even plane triangulation
-    -> remove the degree-12 dual vertex corresponding to the obstructed face
-    -> insert every canonical parity-valid 12-boundary triangulated disk
-    -> require the closed dual to be even and 4-connected
-    -> dualize back to a cubic bipartite planar brace
-    -> test Hamiltonicity exactly
-    -> prove every provisional negative independently in primal and dual encodings
-```
-
-This supersedes abstract pole multiplication because exact empty abstract products are already abundant, while every fully instantiated four- and five-pole empty product tested so far is nonplanar. The remaining bottleneck is a realizable cyclic boundary rotation. In the dual disk model, the embedding is part of the generated object.
-
-A recent theorem proves Hamiltonicity when every face has size at most eight. Therefore any counterexample must contain a face of size at least ten. The same theorem succeeds through exact embedded graph substitutions and exhaustive open-end state checking, strongly supporting this route.
-
-Barnette's conjecture also reduces to cubic planar braces. Requiring dual vertex connectivity at least four targets the cyclically 4-connected/brace core rather than creating another connectivity-two near-counterexample.
-
-## 3. Strongest certified source: candidate 489
-
-Candidate 489 is a verified simple cubic bipartite planar 3-connected graph with:
-
-```text
-vertices = 100
-edges = 150
-large face sizes = 12, 30, 30
-```
-
-The distinguished 12-face has cyclic vertex order
+Candidate 489 is a verified 100-vertex simple cubic bipartite planar 3-connected graph. Its distinguished 12-face has cyclic order
 
 ```text
 5, 10, 17, 25, 35, 48, 40, 30, 22, 14, 18, 11
 ```
 
-and principal certified obstruction
+The principal certified facial obstruction is
 
 ```text
 (14,18) included
@@ -69,303 +38,134 @@ and principal certified obstruction
 (5,11) excluded
 ```
 
-No Hamiltonian cycle satisfies that pattern.
-
-Six source cases were solved UNSAT by CaDiCaL and their textual DRAT proofs were accepted by `drat-trim`.
+No Hamiltonian cycle satisfies this pattern. Six source cases have CaDiCaL textual DRAT proofs accepted by `drat-trim`.
 
 Evidence:
 
 - `results/2026-08-02/three_edge_face_candidates.json`
-- `search/sat_verify_face_constraints.py`
-- workflow run `30750008325`
+- workflow `30750008325`
 - artifact `8834131003`
 - artifact SHA-256 `0aab9f4cdcd8ed61467f2a11de3d764e2dfc410b61b28a48ada61581ca9c1da1`
 
-Deleting the three principal edges produces an exact six-terminal source pole:
-
-```text
-positive states = 26
-exact negative states = 49
-unknown states = 0
-```
-
-The complete 12-face mask exploration found:
-
-```text
-all Boolean masks = 4096
-locally degree-feasible masks = 322
-Hamiltonian-positive masks = 100
-exact negative masks = 222
-```
-
-Eight unavoidable cofacial edge pairs have independent checked proofs. A fresh width-three scan is active because the older aggregate prime-cube width distribution must be independently reproduced before it is used for substitution synthesis.
-
-## 4. Candidate 489 dual
-
-The reconstructed dual is a simple even plane triangulation with:
-
-```text
-vertices = 52
-edges = 150
-all degrees even = true
-vertex connectivity = 4
-```
-
-The distinguished 12-face becomes a degree-12 dual vertex. Its cyclic neighbor order after removal is
+Its dual is a simple even 4-connected plane triangulation with 52 vertices and 150 edges. Removing the degree-12 vertex corresponding to the distinguished face leaves boundary order
 
 ```text
 3, 6, 10, 18, 26, 29, 21, 16, 9, 5, 11, 0
 ```
 
-The principal obstruction becomes one bichromatic and two monochromatic incident dual edges:
+## 3. Uniform dual-substitution theorem through order 112
+
+The earlier order-specific disk generators have been superseded by one exact link-cycle generator:
 
 ```text
-(14,18): bichromatic
-(10,17): monochromatic
-(5,11): monochromatic
+search/uniform_dual_cycle_disk_generator.py
 ```
 
-For a cubic plane graph, a Hamiltonian cycle is the cut of a binary face coloring whose selected edges form a connected spanning 2-factor; equivalently, the two dual color classes induce trees.
-
-## 5. Independent dual proof and large-face relation mining
-
-### Independent dual proof
-
-Script:
+Restore the removed dual vertex as a color-0 apex. For a disk with `k` internal vertices, the augmented even sphere triangulation has `13+k` vertices. Every face is rainbow, so
 
 ```text
-search/dual_face_cut_obstruction.py
+E01 = E02 = E12 = 11 + k
 ```
 
-Workflow:
+The color-1/color-2 graph therefore consists of the fixed 12-cycle plus exactly `k-1` extra edges. Internal color-0 vertex links form simple alternating cycles such that:
 
 ```text
-.github/workflows/dual-face-cut-obstruction.yml
+boundary H12 edges have multiplicity 1
+extra H12 edges have multiplicity 2
 ```
 
-It tests all eight patterns on the principal triple and independently re-proves all six source obstructions. A positive must validate both an explicit primal Hamiltonian cycle and two induced dual trees. A negative requires a checked CaDiCaL proof.
+A candidate is retained only when its rainbow triangles form a connected closed complex with Euler characteristic two and every vertex link is one cycle. This is an exact combinatorial sphere certificate.
 
-Active isolated run:
+### Complete result
+
+Every parity-valid triangulated 12-disk with one through seven internal vertices was generated, quotienting by exact colored boundary isomorphism, and glued under all 24 dihedral boundary maps. Only even 4-connected dual closures were retained.
+
+| Primal order | k | Disk classes | Boundary maps | Valid closures | Tested encodings | Hamiltonian | Negative | Unknown |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 100 | 1 | 1 | 24 | 24 | 24 | 24 | 0 | 0 |
+| 102 | 2 | 2 | 48 | 32 | 32 | 32 | 0 | 0 |
+| 104 | 3 | 14 | 336 | 192 | 192 | 192 | 0 | 0 |
+| 106 | 4 | 44 | 1,056 | 568 | 568 | 568 | 0 | 0 |
+| 108 | 5 | 206 | 4,944 | 2,564 | 2,564 | 2,564 | 0 | 0 |
+| 110 | 6 | 778 | 18,672 | 8,802 | 8,709 | 8,709 | 0 | 0 |
+| 112 | 7 | 3,198 | 76,752 | 34,490 | 34,020 | 34,020 | 0 | 0 |
+| **Total** | **1-7** | **4,243** | **101,832** | **46,672** | **46,109** | **46,109** | **0** | **0** |
+
+The difference between valid closures and tested encodings is 563 exact duplicate labeled graphs. Every tested positive has an independently checked spanning connected degree-two witness.
+
+Primary evidence:
+
+- `docs/UNIFORM_DUAL_SUBSTITUTION_THROUGH_ORDER112_2026-08-04.md`
+- `results/2026-08-04/uniform_dual_substitution_k7_summary.json`
+- `search/uniform_dual_cycle_disk_generator.py`
+
+Hashes:
 
 ```text
-30871499944
+generator  2caa76f131031df2c92e7877610d79ce89260bc05421594b9e96da2400766a99
+summary    4596e3f3a7b7f9c760d110ee26ab3bf49f55ae0495cf7e1ad82cd24548caf19b
+archive    d9a0686c6405478878ddf462f0f559db3caa745c7c4ccee0d1151ee677c5ad40
 ```
 
-### Large-face prime-implicate scan
+## 4. Corrections to previous completeness claims
 
-Script:
+The uniform generator found two omissions:
 
-```text
-search/dual_face_implicate_scan.py
-```
+1. **Order 106:** 44 disk classes and 568 valid closures, not 43 and 556. One all-color-0 disk type and 12 valid closures were missing. All are Hamiltonian.
+2. **Order 108:** 206 disk classes, not 193 in the prior completed accounting. Thirteen disk types were missing. The corrected 2,564 valid closures are all Hamiltonian.
 
-Workflow:
+No prior positive witness was invalidated. The corrected search strictly enlarges the tested classes.
 
-```text
-.github/workflows/dual-face-implicate-scan.yml
-```
+## 5. Hamiltonicity verification
 
-It classifies every width-1, width-2, and width-3 include/exclude assignment on candidate 489's 12-, 30-, and 30-faces, extracts prime forbidden patterns with cyclic positions and gap signatures, and proof-escalates 32 compact ternary clauses.
+The primary solver is an exact perfect-matching-complement recursion with closed-subcycle pruning. A deliberately low branch cutoff separated easy positives from hard cases. Every cutoff case was solved independently by a binary selected-edge 2-factor MILP with iterative subtour cuts.
 
-Active isolated run:
+MILP was used only to produce positive witnesses. No infeasibility status was interpreted as proof.
 
-```text
-30871499947
-```
-
-Temporary execution PR #8 contains only trigger changes and must not be merged.
-
-## 6. Complete low-order dual 12-disk substitution campaign
-
-Removing the degree-12 dual vertex leaves a 12-cycle boundary. Let a candidate disk triangulation be glued to this boundary.
-
-### Exact Eulerian parity criterion
-
-Each outside boundary vertex loses one incident radial edge, so its outside degree is odd. In the closed triangulation:
+Final witness audit:
 
 ```text
-all 12 boundary degrees in the disk must be odd;
-all internal disk degrees must be even.
-```
-
-This criterion is exact, not heuristic.
-
-### Canonical generation classes
-
-Plantri partitions minimum-degree-three 12-disk triangulations into:
-
-```text
--P12 -c3m3   no boundary chord, no degree-two boundary vertex
--P12 -c2x    at least one boundary chord, no degree-two boundary vertex
-```
-
-Together these classes cover every minimum-degree-three canonical 12-disk triangulation before the parity filter.
-
-Disk orders 13 through 18 are being searched completely. A disk of order `n` produces:
-
-```text
-closed dual order = n + 39
-primal cubic order = 2n + 74
-```
-
-Thus the current complete campaign covers primal orders 100 through 110.
-
-### Search transaction
-
-For every canonical disk and all 24 dihedral boundary maps:
-
-1. validate the embedded disk and exact degree parity;
-2. assemble and deduplicate the closed dual;
-3. require planarity, triangulation edge count, all-even degrees, and dual connectivity at least four;
-4. dualize and independently verify every Barnette predicate;
-5. screen Hamiltonicity with an exact lazy-cut SAT oracle;
-6. escalate every provisional negative to both the primal selected-edge proof and the dual face-color/two-tree proof;
-7. accept a counterexample only if both proof certificates are independently checked.
-
-Implementation:
-
-```text
-search/dual_disk_substitution_search.py
-```
-
-Chordless workflow and run:
-
-```text
-.github/workflows/dual-disk-substitution-search.yml
-30871892938
-PR #9
-```
-
-Chord-required complement and run:
-
-```text
-.github/workflows/dual-disk-chorded-substitution-search.yml
-30872355766
-PR #10
-```
-
-All jobs are currently queued. No mathematical inference is made from queue state.
-
-## 7. Source-recovery regression
-
-The order-13 star disk consists of a 12-cycle and one internal vertex adjacent to all boundary vertices. It satisfies the exact parity criterion.
-
-A local structural regression tested all 24 dihedral maps:
-
-```text
-24/24 assembled duals are isomorphic to candidate 489's dual;
-assembled dual order = 52;
-assembled dual connectivity = 4;
-dualization returns a 100-vertex graph isomorphic to candidate 489.
-```
-
-This validates boundary identification, cyclic gluing, order conversion, and primal reconstruction. It does not validate the SAT/proof implementation; the order-13 Actions job must supply that regression.
-
-Evidence:
-
-- `results/2026-08-04/dual_disk_source_recovery_regression.json`
-- `docs/research-log/2026-08-04-0230-dual-disk-search.md`
-
-## 8. Why prior major routes are secondary or retired
-
-### Consecutive facial ternary condition
-
-Across candidate 489 and 24 retained order-96/order-100 parents:
-
-```text
-cases = 7356
-verified positives = 7356
-certified negatives = 0
+verified Hamiltonian encodings = 46,109
+negative = 0
 unknown = 0
+invalid witnesses = 0
 ```
 
-### Grand Q-first v3
+Each witness was checked for:
 
-```text
-parents = 24
-patch sides = 35744
-Q states = 71488
-positive = 71488
-missing = 0
-unknown = 0
-```
+- graph-edge membership;
+- exactly `n` distinct edges;
+- degree two at every vertex;
+- connectedness.
 
-### Relation-first candidate-489 CEGIS
+## 6. Consequence and strategic pivot
 
-```text
-SAT topologies proposed = 200000
-zero selectors = 0
-best compatibility = 14 at patch order 18
-```
+Within this source-and-face mechanism, any counterexample must use at least eight inserted disk vertices, corresponding to primal order at least 114, or must leave the one-face substitution framework.
 
-Every job ended at its iteration cap, so this is not an exhaustive nonexistence result.
+The completed bound changes the strategic assessment. Blindly increasing disk order has already produced 46,672 valid closure constructions through order 112, all Hamiltonian. The primary next route is therefore not undirected order growth.
 
-### Complete small six-port classes
+Priority sequence:
 
-```text
-orders 6-10: zero maps 0
-order 12: 98484 matrices, zero maps 0
-canonical order 14: zero maps 0
-```
+1. compute exact two-tree boundary languages of the strongest order-112 closures and rank them by relation restriction rather than solver difficulty;
+2. synthesize a multi-face or multi-hole embedded composition whose topology is 4-connected before instantiation;
+3. use the certified candidate-489 facial relation as a hard semantic objective;
+4. retain order-114 single-face generation only as a controlled comparison or when relation-guided pruning is available;
+5. escalate any nonpositive whole graph immediately to independent primal and dual proof-producing SAT.
 
-The order-16 canonical patch workflow remains committed but its temporary execution PR #7 was closed to release Actions capacity for the stronger dual campaigns.
+## 7. Retired or secondary routes
 
-### Mixed restrictive poles
+The following remain valid negative search results but are not the primary route:
 
-Abstract exact zeros are abundant:
+- 7,356/7,356 consecutive facial ternary cases positive;
+- Grand Q-first v3: 71,488/71,488 natural cyclic-4-cut states positive;
+- relation-first candidate-489 CEGIS: 200,000 proposals, zero selector, best compatibility 14, but iteration-capped rather than exhaustive;
+- complete small six-port classes through canonical order 14: no zero map;
+- 12,800 four-pole and 39,168 five-pole concrete empty-language assemblies: all nonplanar;
+- 65 planar five-pole zero-language near-counterexamples: all connectivity two;
+- 655 connectivity-restoring C4 repairs: all regained a compatible Hamiltonian trace.
 
-```text
-four-pole K4 zero assignments = 3072
-five-pole doubled-wheel zero assignments = 43008
-```
+## 8. Repository control
 
-But complete concrete tests found:
+PR #1 remains temporarily closed and unmerged to prevent obsolete workflow fan-out. The authoritative branch and history remain intact. Temporary execution PRs #8-#10 are not to be merged.
 
-```text
-12800/12800 four-pole assemblies nonplanar
-39168/39168 five-pole assemblies nonplanar
-```
-
-The octahedral six-pole class was closed over 608,000,000 exact matching/relation combinations with no zero. Other six-pole multigraph skeletons admit abstract order-92 zeros, but 100,000 representative concrete assemblies were nonplanar.
-
-### Connectivity-two near-counterexamples
-
-Corrected `AABCC` synthesis found 65 planar zero-language assemblies with cofacial target edges, but all had vertex connectivity two. Generic `C4` repair produced 655 Barnette graphs and every one regained the forbidden-compatible Hamiltonian trace.
-
-## 9. Repository and workflow control
-
-PR #1 was temporarily closed, not merged or deleted, because every research commit was launching roughly twenty obsolete workflows and starving the isolated dual campaigns. The authoritative branch and complete history remain intact. PR #1 can be reopened after workflow triggers are consolidated.
-
-Temporary execution PRs:
-
-```text
-PR #8  independent dual proof and large-face scan
-PR #9  chordless 12-disk classes
-PR #10 chord-required 12-disk complement
-```
-
-None is to be merged.
-
-## 10. Immediate execution sequence
-
-1. Complete independent dual proof run `30871499944` and reject the shared dual code if it fails to reproduce the six source certificates.
-2. Complete large-face scan `30871499947`; reconcile the older prime-cube summary against the independently proof-certified ternary clauses.
-3. Complete chordless run `30871892938` and require order 13 to reconstruct candidate 489 with an explicit Hamiltonian witness.
-4. Complete chorded run `30872355766`.
-5. Aggregate every order 13-18 disk from both plantri classes, deduplicate closed duals, and record the complete 100-110 vertex substitution frontier.
-6. For any provisional negative, require both primal and dual checked proof packages before further interpretation.
-7. If orders 13-18 close positively, extend disk order with exact sharding determined from observed plantri counts and rank hard positive instances by SAT connectivity rounds and facial obstruction density.
-8. Reopen PR #1 only after obsolete trigger paths are consolidated.
-
-## 11. Current assessment
-
-No counterexample has been found.
-
-The search is now aimed at a sharply defined construction object in the correct embedded category:
-
-```text
-an even triangulated 12-disk whose cyclic closure with candidate 489 remains
-4-connected but admits no partition into two induced trees.
-```
-
-Such a disk dualizes directly to a simple cubic bipartite planar brace and bypasses the nonplanarity and connectivity-two failures that defeated the strongest previous obstruction compositions.
+The next repository operation should consolidate obsolete workflow triggers before reopening PR #1.
