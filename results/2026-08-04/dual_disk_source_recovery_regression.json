@@ -1,0 +1,48 @@
+{
+  "date_utc": "2026-08-04",
+  "classification": "local structural regression; Actions reproduction pending",
+  "source": "canonical candidate 489",
+  "source_primal": {
+    "vertices": 100,
+    "edges": 150,
+    "cubic": true,
+    "bipartite": true,
+    "planar": true
+  },
+  "source_dual": {
+    "vertices": 52,
+    "edges": 150,
+    "all_degrees_even": true,
+    "node_connectivity": 4,
+    "target_face_embedding_index": 7,
+    "target_dual_degree": 12,
+    "boundary_neighbors_cyclic_order": [3, 6, 10, 18, 26, 29, 21, 16, 9, 5, 11, 0]
+  },
+  "regression_disk": {
+    "vertices": 13,
+    "boundary_vertices": 12,
+    "internal_vertices": 1,
+    "construction": "12-cycle plus one internal vertex adjacent to every boundary vertex",
+    "plantri_ascii_equivalent": "13 bml,cma,dmb,emc,fmd,gme,hmf,img,jmh,kmi,lmj,amk,abcdefghijkl",
+    "boundary_degrees_odd": true,
+    "internal_degrees_even": true
+  },
+  "assembly": {
+    "dihedral_maps_tested": 24,
+    "maps_producing_a_graph_isomorphic_to_the_source_dual": 24,
+    "assembled_dual_vertices": 52,
+    "assembled_dual_edges": 150,
+    "assembled_dual_node_connectivity": 4,
+    "assembled_dual_all_degrees_even": true
+  },
+  "dualization": {
+    "primal_vertices": 100,
+    "primal_edges": 150,
+    "parallel_edges": false,
+    "cubic": true,
+    "bipartite": true,
+    "node_connectivity": 3,
+    "isomorphic_to_candidate_489": true
+  },
+  "interpretation": "This validates the boundary identification, dihedral gluing convention, dual order formula, and primal reconstruction. It does not validate the SAT or proof pipeline; the order-13 Actions job must provide that regression."
+}
