@@ -1,0 +1,168 @@
+name: Relation-first six-port CEGIS
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/adversarial-search-v2
+    paths:
+      - .github/workflows/relation-first-six-port-cegis.yml
+      - search/relation_first_six_port_cegis.py
+      - search/exact_six_port_closure_search.py
+      - search/sat_verify_face_constraints.py
+      - results/2026-08-02/three_edge_face_candidates.json
+      - requirements.txt
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/relation-first-six-port-cegis.yml
+      - search/relation_first_six_port_cegis.py
+      - search/exact_six_port_closure_search.py
+      - search/sat_verify_face_constraints.py
+      - results/2026-08-02/three_edge_face_candidates.json
+      - requirements.txt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: relation-first-six-port-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  synthesize:
+    name: CEGIS n=${{ matrix.order }} seed=${{ matrix.seed }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        order: [16, 18, 20, 22, 24]
+        seed: [0, 1]
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install pinned dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m py_compile search/relation_first_six_port_cegis.py
+          python - <<'PY'
+          import networkx, pysat
+          from pysat.solvers import Solver
+          print('networkx', networkx.__version__)
+          print('python-sat', pysat.__version__)
+          with Solver(name='g4') as solver:
+              solver.add_clause([1])
+              assert solver.solve()
+          PY
+
+      - name: Build independent proof toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git tools/drat-trim
+          make -C tools/drat-trim
+          test -x tools/drat-trim/drat-trim
+          git -C tools/drat-trim rev-parse HEAD | tee drat-trim.commit
+
+          git clone --depth 1 https://github.com/arminbiere/cadical.git tools/cadical
+          cd tools/cadical
+          ./configure
+          make -j2
+          test -x build/cadical
+          build/cadical --version
+          git rev-parse HEAD | tee ../../cadical.commit
+
+      - name: Synthesize relation-first selector
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="results/2026-08-03/relation-first-six-port/order-${{ matrix.order }}/seed-${{ matrix.seed }}"
+          mkdir -p "${ROOT}"
+          python search/relation_first_six_port_cegis.py \
+            --source-input results/2026-08-02/three_edge_face_candidates.json \
+            --output-dir "${ROOT}" \
+            --patch-order ${{ matrix.order }} \
+            --seed ${{ matrix.seed }} \
+            --solver g4 \
+            --call-budget 10000000 \
+            --max-iterations 20000 \
+            --wall-time 18000 \
+            --proof-solver tools/cadical/build/cadical \
+            --drat-trim tools/drat-trim/drat-trim \
+            --max-rounds 100000 \
+            --proof-timeout 3600 \
+            | tee "${ROOT}/campaign.log"
+
+      - name: Write fail-closed manifest
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib, platform, subprocess
+          import networkx
+          try:
+              import pysat
+              pysat_version=pysat.__version__
+          except Exception:
+              pysat_version=None
+          order=${{ matrix.order }}
+          seed=${{ matrix.seed }}
+          root=pathlib.Path(f'results/2026-08-03/relation-first-six-port/order-{order}/seed-{seed}')
+          root.mkdir(parents=True,exist_ok=True)
+          summary_path=root/'campaign_summary.json'
+          checkpoint_path=root/'checkpoint.json'
+          summary=json.loads(summary_path.read_text()) if summary_path.exists() else None
+          checkpoint=json.loads(checkpoint_path.read_text()) if checkpoint_path.exists() else None
+          files=[]
+          for path in sorted(root.rglob('*')):
+              if path.is_file():
+                  files.append({'path':str(path),'bytes':path.stat().st_size,'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
+          manifest={
+              'campaign':'relation-first-six-port-cegis',
+              'order':order,
+              'seed':seed,
+              'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+              'source_file':'results/2026-08-02/three_edge_face_candidates.json',
+              'summary':summary,
+              'checkpoint':checkpoint,
+              'counterexample_found':bool(summary and summary.get('counterexample_found')),
+              'drat_trim_commit':pathlib.Path('drat-trim.commit').read_text().strip() if pathlib.Path('drat-trim.commit').exists() else None,
+              'cadical_commit':pathlib.Path('cadical.commit').read_text().strip() if pathlib.Path('cadical.commit').exists() else None,
+              'software':{'python':platform.python_version(),'networkx':networkx.__version__,'python_sat':pysat_version},
+              'files':files,
+          }
+          (root/'manifest.json').write_text(json.dumps(manifest,indent=2))
+          print(json.dumps({'order':order,'seed':seed,'status':(summary or checkpoint or {}).get('status'),'best':(summary or checkpoint or {}).get('best_compatibility',(summary or checkpoint or {}).get('best')),'counterexample_found':manifest['counterexample_found']},indent=2))
+          if summary and summary.get('counterexample_found'):
+              result=summary.get('final_candidate',{}).get('whole_graph_result',{})
+              if result.get('classification')!='certified_negative' or not result.get('proof_verification',{}).get('verified',False):
+                  raise SystemExit('counterexample flag lacks a checked proof')
+          PY
+
+      - name: Upload complete synthesis evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relation-first-six-port-n${{ matrix.order }}-s${{ matrix.seed }}-${{ github.sha }}
+          path: |
+            results/2026-08-03/relation-first-six-port/order-${{ matrix.order }}/seed-${{ matrix.seed }}
+            results/2026-08-02/three_edge_face_candidates.json
+            search/relation_first_six_port_cegis.py
+            search/exact_six_port_closure_search.py
+            search/sat_verify_face_constraints.py
+            drat-trim.commit
+            cadical.commit
+          if-no-files-found: error
+          retention-days: 90
