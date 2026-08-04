@@ -1,0 +1,200 @@
+name: Dual 12-disk substitution search
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/adversarial-search-v2
+    paths:
+      - .github/workflows/dual-disk-substitution-search.yml
+      - search/dual_disk_substitution_search.py
+      - search/dual_face_cut_obstruction.py
+      - search/sat_verify_face_constraints.py
+      - results/2026-08-02/three_edge_face_candidates.json
+      - requirements.txt
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/dual-disk-substitution-search.yml
+      - search/dual_disk_substitution_search.py
+      - search/dual_face_cut_obstruction.py
+      - search/sat_verify_face_constraints.py
+      - results/2026-08-02/three_edge_face_candidates.json
+      - requirements.txt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dual-disk-substitution-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  search:
+    name: 12-disk order ${{ matrix.order }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        order: [13, 14, 15, 16, 17, 18]
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install pinned dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m py_compile search/dual_disk_substitution_search.py
+          python -m py_compile search/dual_face_cut_obstruction.py
+          python -m py_compile search/sat_verify_face_constraints.py
+
+      - name: Download and compile official plantri 5.8
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            https://users.cecs.anu.edu.au/~bdm/plantri/plantri58.tar.gz \
+            --output plantri58.tar.gz
+          sha256sum plantri58.tar.gz | tee plantri58.sha256
+          grep -q '^e78a944116fec9f2c9f5e484206276cc2b0043bae803e9815f4b2683614629b8 ' plantri58.sha256
+          tar xzf plantri58.tar.gz
+          make -C plantri58 plantri
+          test -x plantri58/plantri
+
+      - name: Build independent proof toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git tools/drat-trim
+          make -C tools/drat-trim
+          test -x tools/drat-trim/drat-trim
+          git -C tools/drat-trim rev-parse HEAD | tee drat-trim.commit
+
+          git clone --depth 1 https://github.com/arminbiere/cadical.git tools/cadical
+          cd tools/cadical
+          ./configure
+          make -j2
+          test -x build/cadical
+          build/cadical --version
+          git rev-parse HEAD | tee ../../cadical.commit
+
+      - name: Generate every canonical chordless 12-disk
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="results/2026-08-04/dual-disk-substitution/order-${{ matrix.order }}"
+          mkdir -p "${ROOT}"
+          ./plantri58/plantri \
+            -P12 -c3m3 -a \
+            "${{ matrix.order }}" \
+            2> "${ROOT}/plantri.stderr" \
+            > "${ROOT}/disks.asc"
+          wc -l "${ROOT}/disks.asc"
+
+      - name: Search all parity-valid disks and dihedral maps
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="results/2026-08-04/dual-disk-substitution/order-${{ matrix.order }}"
+          python search/dual_disk_substitution_search.py \
+            --source-input results/2026-08-02/three_edge_face_candidates.json \
+            --disk-input "${ROOT}/disks.asc" \
+            --output-dir "${ROOT}" \
+            --expected-order "${{ matrix.order }}" \
+            --boundary-size 12 \
+            --solver g4 \
+            --max-rounds 100000 \
+            --proof-solver tools/cadical/build/cadical \
+            --drat-trim tools/drat-trim/drat-trim \
+            --proof-timeout 3600 \
+            | tee "${ROOT}/campaign.log"
+
+      - name: Enforce fail-closed result
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,pathlib
+          order=${{ matrix.order }}
+          path=pathlib.Path(f'results/2026-08-04/dual-disk-substitution/order-{order}/dual_disk_substitution_summary.json')
+          data=json.loads(path.read_text())
+          assert data['expected_disk_order']==order
+          assert data['boundary_size']==12
+          assert data['source']['dual_validation']['even_plane_triangulation']
+          assert data['source']['dual_validation']['node_connectivity']>=4
+          assert data['complete_classification'], data['unknown_records'][:3]
+          for candidate in data['certified_counterexamples']:
+              assert candidate['certified_counterexample']
+              assert candidate['primal_validation']['barnette_predicates']
+              assert candidate['dual_connectivity']>=4
+              assert candidate['primal_proof']['proof_verification']['verified']
+              assert candidate['dual_proof']['proof_verification']['verified']
+          print(json.dumps({
+              'order':order,
+              'counts':data['counts'],
+              'counterexample_found':data['counterexample_found'],
+          },indent=2))
+          PY
+
+      - name: Write manifest
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib,platform,subprocess
+          import networkx
+          try:
+              import pysat
+              pysat_version=pysat.__version__
+          except Exception:
+              pysat_version=None
+          order=${{ matrix.order }}
+          root=pathlib.Path(f'results/2026-08-04/dual-disk-substitution/order-{order}')
+          summary_path=root/'dual_disk_substitution_summary.json'
+          summary=json.loads(summary_path.read_text()) if summary_path.exists() else None
+          files=[]
+          for path in sorted(root.rglob('*')):
+              if path.is_file():
+                  files.append({'path':str(path),'bytes':path.stat().st_size,'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
+          manifest={
+              'campaign':'dual-12-disk-substitution-search',
+              'disk_order':order,
+              'plantri_command':f'plantri -P12 -c3m3 -a {order}',
+              'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+              'summary':summary,
+              'plantri_archive_sha256':pathlib.Path('plantri58.sha256').read_text().split()[0] if pathlib.Path('plantri58.sha256').exists() else None,
+              'drat_trim_commit':pathlib.Path('drat-trim.commit').read_text().strip() if pathlib.Path('drat-trim.commit').exists() else None,
+              'cadical_commit':pathlib.Path('cadical.commit').read_text().strip() if pathlib.Path('cadical.commit').exists() else None,
+              'software':{'python':platform.python_version(),'networkx':networkx.__version__,'python_sat':pysat_version},
+              'files':files,
+          }
+          root.mkdir(parents=True,exist_ok=True)
+          (root/'manifest.json').write_text(json.dumps(manifest,indent=2))
+          PY
+
+      - name: Upload complete order evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dual-disk-order-${{ matrix.order }}-${{ github.sha }}
+          path: |
+            results/2026-08-04/dual-disk-substitution/order-${{ matrix.order }}
+            results/2026-08-02/three_edge_face_candidates.json
+            search/dual_disk_substitution_search.py
+            search/dual_face_cut_obstruction.py
+            search/sat_verify_face_constraints.py
+            plantri58.sha256
+            drat-trim.commit
+            cadical.commit
+          if-no-files-found: error
+          retention-days: 90
