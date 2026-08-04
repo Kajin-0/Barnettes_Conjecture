@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - agent/adversarial-search-v2
+      - agent/order16-execution-20260804
     paths:
       - .github/workflows/canonical-six-port-order16.yml
       - search/exact_six_port_closure_search.py
