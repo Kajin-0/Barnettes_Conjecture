@@ -1,0 +1,184 @@
+name: Order-26 obstruction seed six-port search
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/adversarial-search-v2
+    paths:
+      - .github/workflows/order26-obstruction-seed-six-port.yml
+      - search/asano_seed_six_port_search.py
+      - search/exact_six_port_closure_search.py
+      - search/sat_verify_face_constraints.py
+      - results/2026-08-02/three_edge_face_candidates.json
+      - requirements.txt
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/order26-obstruction-seed-six-port.yml
+      - search/asano_seed_six_port_search.py
+      - search/exact_six_port_closure_search.py
+      - search/sat_verify_face_constraints.py
+      - results/2026-08-02/three_edge_face_candidates.json
+      - requirements.txt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: order26-obstruction-seed-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  search:
+    name: Order-26 canonical shard ${{ matrix.residue }}/16
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 16
+      matrix:
+        residue: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install pinned dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m py_compile search/asano_seed_six_port_search.py
+
+      - name: Download and compile official plantri 5.8
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            https://users.cecs.anu.edu.au/~bdm/plantri/plantri58.tar.gz \
+            --output plantri58.tar.gz
+          sha256sum plantri58.tar.gz | tee plantri58.sha256
+          tar xzf plantri58.tar.gz
+          make -C plantri58 plantri
+          test -x plantri58/plantri
+
+      - name: Build independent proof toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git tools/drat-trim
+          make -C tools/drat-trim
+          test -x tools/drat-trim/drat-trim
+          git -C tools/drat-trim rev-parse HEAD | tee drat-trim.commit
+
+          git clone --depth 1 https://github.com/arminbiere/cadical.git tools/cadical
+          cd tools/cadical
+          ./configure
+          make -j2
+          test -x build/cadical
+          build/cadical --version
+          git rev-parse HEAD | tee ../../cadical.commit
+
+      - name: Generate canonical order-26 cubic bipartite planar shard
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="results/2026-08-03/order26-obstruction-seed/shard-${{ matrix.residue }}"
+          mkdir -p "${ROOT}"
+          ./plantri58/plantri \
+            -bp -c2 -m3 -e39 -g 26 \
+            "${{ matrix.residue }}/16" \
+            2> "${ROOT}/plantri.stderr" \
+            | LC_ALL=C sort -u \
+            > "${ROOT}/seeds.g6"
+          wc -l "${ROOT}/seeds.g6"
+
+      - name: Search every non-Hamiltonian seed conversion
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="results/2026-08-03/order26-obstruction-seed/shard-${{ matrix.residue }}"
+          python search/asano_seed_six_port_search.py \
+            --source-input results/2026-08-02/three_edge_face_candidates.json \
+            --seed-input "${ROOT}/seeds.g6" \
+            --output-dir "${ROOT}" \
+            --solver g4 \
+            --call-budget 10000000 \
+            --max-rounds 100000 \
+            --proof-solver tools/cadical/build/cadical \
+            --drat-trim tools/drat-trim/drat-trim \
+            --proof-timeout 3600 \
+            --wall-time 18000 \
+            | tee "${ROOT}/campaign.log"
+
+      - name: Write fail-closed manifest
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib, platform, subprocess
+          import networkx
+          try:
+              import pysat
+              pysat_version=pysat.__version__
+          except Exception:
+              pysat_version=None
+          residue=${{ matrix.residue }}
+          root=pathlib.Path(f'results/2026-08-03/order26-obstruction-seed/shard-{residue}')
+          root.mkdir(parents=True,exist_ok=True)
+          summary_path=root/'campaign_summary.json'
+          checkpoint_path=root/'checkpoint.json'
+          summary=json.loads(summary_path.read_text()) if summary_path.exists() else None
+          checkpoint=json.loads(checkpoint_path.read_text()) if checkpoint_path.exists() else None
+          files=[]
+          for path in sorted(root.rglob('*')):
+              if path.is_file():
+                  files.append({'path':str(path),'bytes':path.stat().st_size,'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
+          manifest={
+              'campaign':'order26-obstruction-seed-six-port-search',
+              'residue':residue,
+              'modulus':16,
+              'plantri_command':f'plantri -bp -c2 -m3 -e39 -g 26 {residue}/16',
+              'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+              'source_file':'results/2026-08-02/three_edge_face_candidates.json',
+              'summary':summary,
+              'checkpoint':checkpoint,
+              'counterexample_found':bool(summary and summary.get('counterexample_found')),
+              'plantri_archive_sha256':pathlib.Path('plantri58.sha256').read_text().split()[0] if pathlib.Path('plantri58.sha256').exists() else None,
+              'drat_trim_commit':pathlib.Path('drat-trim.commit').read_text().strip() if pathlib.Path('drat-trim.commit').exists() else None,
+              'cadical_commit':pathlib.Path('cadical.commit').read_text().strip() if pathlib.Path('cadical.commit').exists() else None,
+              'software':{'python':platform.python_version(),'networkx':networkx.__version__,'python_sat':pysat_version},
+              'files':files,
+          }
+          (root/'manifest.json').write_text(json.dumps(manifest,indent=2))
+          print(json.dumps({'residue':residue,'status':(summary or checkpoint or {}).get('status'),'input_records':(summary or checkpoint or {}).get('counts',{}).get('input_records'),'nonhamiltonian_seeds':(summary or checkpoint or {}).get('counts',{}).get('nonhamiltonian_seeds'),'best_compatibility':(summary or checkpoint or {}).get('best_compatibility'),'counterexample_found':manifest['counterexample_found']},indent=2))
+          if summary and summary.get('counterexample_found'):
+              for candidate in summary.get('certified_counterexample_candidates',[]):
+                  result=candidate.get('whole_graph_result',{})
+                  if result.get('classification')!='certified_negative' or not result.get('proof_verification',{}).get('verified',False):
+                      raise SystemExit('counterexample candidate lacks checked proof')
+          PY
+
+      - name: Upload complete shard evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: order26-obstruction-seed-shard-${{ matrix.residue }}-${{ github.sha }}
+          path: |
+            results/2026-08-03/order26-obstruction-seed/shard-${{ matrix.residue }}
+            results/2026-08-02/three_edge_face_candidates.json
+            search/asano_seed_six_port_search.py
+            search/exact_six_port_closure_search.py
+            search/sat_verify_face_constraints.py
+            plantri58.sha256
+            drat-trim.commit
+            cadical.commit
+          if-no-files-found: error
+          retention-days: 90
