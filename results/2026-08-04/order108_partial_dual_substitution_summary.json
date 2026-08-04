@@ -1,0 +1,73 @@
+{
+  "date_utc": "2026-08-04",
+  "status": "locally exact completed subclasses; independent plantri/Actions reproduction pending",
+  "counterexample_found": false,
+  "scope": "Candidate 489 12-boundary dual substitutions at k=5 (primal order 108), completed color classes only.",
+  "completed_classes": [
+    {
+      "color_distribution": [5, 0, 0],
+      "disk_classes": 10,
+      "dihedral_maps": 240,
+      "dual_4connected_maps": 49,
+      "lower_connectivity_maps": 191,
+      "hamiltonian_maps": 49,
+      "negative": 0,
+      "unknown": 0
+    },
+    {
+      "color_distribution": [4, 1, 0],
+      "disk_classes": 115,
+      "dihedral_maps": 2760,
+      "dual_4connected_maps": 1333,
+      "lower_connectivity_maps": 1427,
+      "hamiltonian_maps": 1333,
+      "negative": 0,
+      "unknown": 0,
+      "solver_split": {
+        "cpp_exact_matching_positive": 900,
+        "milp_subtour_positive": 433
+      }
+    }
+  ],
+  "combined_completed_order108": {
+    "disk_classes": 125,
+    "dihedral_maps": 3000,
+    "dual_4connected_maps": 1382,
+    "lower_connectivity_maps": 1618,
+    "hamiltonian_maps": 1382,
+    "negative": 0,
+    "unknown": 0
+  },
+  "combined_with_complete_k_le_4": {
+    "reduced_4connected_closures": 2186,
+    "hamiltonian": 2186,
+    "negative": 0,
+    "unknown": 0
+  },
+  "hard_case": {
+    "id": "84_1_0",
+    "matching_recursion": "Exceeded 100 million branches without classification.",
+    "independent_milp": "Verified Hamiltonian after 11 subtour rounds.",
+    "seconds": 0.07422089576721191,
+    "interpretation": "Branch-order pathology, not an obstruction."
+  },
+  "remaining_k5_color_distributions": [
+    [3, 1, 1],
+    [3, 2, 0],
+    [2, 2, 1]
+  ],
+  "hashes": {
+    "k5_allzero_disks": "b52700b19b53dfeb1c5fabb8cff9dcf3d0bbe643eb8a1815d614342aad5bfb49",
+    "k5_four0_one1_disks": "517726ff564e3c183da070e7b4f9174cd9f66d820c049422f4c6df96b1b63551",
+    "cpp_output": "08ca381d19bb81e3441ce939a0568a5ea6ae5dadca28b160d526e13590d58a37",
+    "milp_output": "1486ef83048680c977143635bf5f543989ac95223ff854dc0e393b217b4f875f",
+    "hard_witness": "a5cef384e9fea61609905c0d508246872a9fc737610e1cee53d01666e977fb04",
+    "local_evidence_archive": "f64a5ed2e6b736559a71c6e6cce7fb5f69a6a0827e64c8f239e8927f00edd465"
+  },
+  "limitations": [
+    "The three remaining k=5 color distributions are not classified.",
+    "MILP was used only to obtain positive witnesses; no infeasibility claim was used.",
+    "The completed subclasses are not a classification of all Barnette graphs of order 108.",
+    "Clean plantri/Actions reproduction remains pending because the repository Actions queue was saturated by obsolete PR workflows."
+  ]
+}
