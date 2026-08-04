@@ -1,0 +1,191 @@
+name: Canonical order-16 six-port closure search
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/adversarial-search-v2
+    paths:
+      - .github/workflows/canonical-six-port-order16.yml
+      - search/exact_six_port_closure_search.py
+      - search/sat_verify_face_constraints.py
+      - results/2026-08-02/three_edge_face_candidates.json
+      - requirements.txt
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/canonical-six-port-order16.yml
+      - search/exact_six_port_closure_search.py
+      - search/sat_verify_face_constraints.py
+      - results/2026-08-02/three_edge_face_candidates.json
+      - requirements.txt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: canonical-six-port-order16-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  search:
+    name: Order-16 patch shard ${{ matrix.residue }}/64
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        residue: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63]
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install pinned dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m py_compile search/exact_six_port_closure_search.py
+          python -m py_compile search/sat_verify_face_constraints.py
+
+      - name: Download and compile official plantri 5.8
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            https://users.cecs.anu.edu.au/~bdm/plantri/plantri58.tar.gz \
+            --output plantri58.tar.gz
+          sha256sum plantri58.tar.gz | tee plantri58.sha256
+          tar xzf plantri58.tar.gz
+          make -C plantri58 plantri
+          test -x plantri58/plantri
+
+      - name: Build independent proof toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git tools/drat-trim
+          make -C tools/drat-trim
+          test -x tools/drat-trim/drat-trim
+          git -C tools/drat-trim rev-parse HEAD | tee drat-trim.commit
+
+          git clone --depth 1 https://github.com/arminbiere/cadical.git tools/cadical
+          cd tools/cadical
+          ./configure
+          make -j2
+          test -x build/cadical
+          build/cadical --version
+          git rev-parse HEAD | tee ../../cadical.commit
+
+      - name: Generate canonical bipartite subcubic patch shard
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="results/2026-08-04/canonical-six-port-order16/shard-${{ matrix.residue }}"
+          mkdir -p "${ROOT}"
+          ./plantri58/plantri \
+            -bp -c2 -m2 -e21 -g 16 \
+            "${{ matrix.residue }}/64" \
+            2> "${ROOT}/plantri.stderr" \
+            | LC_ALL=C sort -u \
+            > "${ROOT}/patches.g6"
+          wc -l "${ROOT}/patches.g6"
+
+      - name: Enumerate exact languages and proof-check zero closures
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="results/2026-08-04/canonical-six-port-order16/shard-${{ matrix.residue }}"
+          python search/exact_six_port_closure_search.py \
+            --source-input results/2026-08-02/three_edge_face_candidates.json \
+            --patch-input "${ROOT}/patches.g6" \
+            --output-dir "${ROOT}" \
+            --expected-patch-order 16 \
+            --expected-patch-edges 21 \
+            --call-budget 10000000 \
+            --solver g4 \
+            --proof-solver tools/cadical/build/cadical \
+            --drat-trim tools/drat-trim/drat-trim \
+            --max-rounds 100000 \
+            --proof-timeout 3600 \
+            | tee "${ROOT}/campaign.log"
+
+      - name: Write fail-closed manifest
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib, platform, subprocess
+          import networkx
+          try:
+              import pysat
+              pysat_version=pysat.__version__
+          except Exception:
+              pysat_version=None
+          residue=${{ matrix.residue }}
+          root=pathlib.Path(f'results/2026-08-04/canonical-six-port-order16/shard-{residue}')
+          root.mkdir(parents=True,exist_ok=True)
+          summary_path=root/'campaign_summary.json'
+          summary=json.loads(summary_path.read_text()) if summary_path.exists() else None
+          files=[]
+          for path in sorted(root.rglob('*')):
+              if path.is_file():
+                  files.append({'path':str(path),'bytes':path.stat().st_size,'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
+          manifest={
+              'campaign':'canonical-order16-six-port-closure-search',
+              'residue':residue,
+              'modulus':64,
+              'plantri_command':f'plantri -bp -c2 -m2 -e21 -g 16 {residue}/64',
+              'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+              'source_file':'results/2026-08-02/three_edge_face_candidates.json',
+              'summary':summary,
+              'counterexample_found':bool(summary and summary.get('certified_counterexample_candidates')),
+              'plantri_archive_sha256':pathlib.Path('plantri58.sha256').read_text().split()[0] if pathlib.Path('plantri58.sha256').exists() else None,
+              'drat_trim_commit':pathlib.Path('drat-trim.commit').read_text().strip() if pathlib.Path('drat-trim.commit').exists() else None,
+              'cadical_commit':pathlib.Path('cadical.commit').read_text().strip() if pathlib.Path('cadical.commit').exists() else None,
+              'software':{'python':platform.python_version(),'networkx':networkx.__version__,'python_sat':pysat_version},
+              'files':files,
+          }
+          (root/'manifest.json').write_text(json.dumps(manifest,indent=2))
+          print(json.dumps({
+              'residue':residue,
+              'input_records':summary.get('patch_counts',{}).get('input_records') if summary else None,
+              'accepted_patch_graphs':summary.get('patch_counts',{}).get('accepted_patch_graphs') if summary else None,
+              'minimum_compatibility':summary.get('minimum_compatibility') if summary else None,
+              'zero_language_map_count':summary.get('zero_language_map_count') if summary else None,
+              'certified_counterexample_candidates':len(summary.get('certified_counterexample_candidates',[])) if summary else None,
+              'incomplete_records':len(summary.get('incomplete_records',[])) if summary else None,
+          },indent=2))
+          if summary is None:
+              raise SystemExit('campaign summary missing')
+          if not summary.get('complete_classification'):
+              raise SystemExit(f'incomplete records: {summary.get("incomplete_records")}')
+          for candidate in summary.get('certified_counterexample_candidates',[]):
+              result=candidate.get('whole_graph_result',{})
+              if result.get('classification')!='certified_negative' or not result.get('proof_verification',{}).get('verified',False):
+                  raise SystemExit('candidate lacks independently checked proof')
+          PY
+
+      - name: Upload complete shard evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: canonical-six-port-order16-shard-${{ matrix.residue }}-${{ github.sha }}
+          path: |
+            results/2026-08-04/canonical-six-port-order16/shard-${{ matrix.residue }}
+            results/2026-08-02/three_edge_face_candidates.json
+            search/exact_six_port_closure_search.py
+            search/sat_verify_face_constraints.py
+            plantri58.sha256
+            drat-trim.commit
+            cadical.commit
+          if-no-files-found: error
+          retention-days: 90
