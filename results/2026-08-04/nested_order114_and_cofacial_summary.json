@@ -1,0 +1,58 @@
+{
+  "date_utc": "2026-08-04",
+  "campaign": "nested-degree12-order114-adversarial-screen",
+  "counterexample_found": false,
+  "construction": "replace an internal degree-12 vertex of a completed k<=7 disk by a second completed 12-disk; k1-1+k2=8",
+  "eligible_pair_counts": {
+    "3+6": 778,
+    "4+5": 206,
+    "5+4": 660,
+    "6+3": 308,
+    "7+2": 340
+  },
+  "relative_orientation_constructions": 55008,
+  "fixed_absolute_orientation": {
+    "valid_closures": 26290,
+    "distinct_labeled_encodings": 21702,
+    "primary_positive": 21598,
+    "cutoff_cases": 104,
+    "independent_positive": 104,
+    "negative": 0,
+    "unknown": 0
+  },
+  "hard_disk_all_absolute_orientations": {
+    "hard_disks": 104,
+    "maps_attempted": 2496,
+    "valid_closures": 1514,
+    "distinct_labeled_encodings": 1466,
+    "primary_positive": 1273,
+    "cutoff_cases": 193,
+    "independent_positive": 193,
+    "negative": 0,
+    "unknown": 0
+  },
+  "hardest_graph_cofacial_H_plus_minus": {
+    "target": "n8_3_0_13_6_417_16_o17",
+    "n": 114,
+    "m": 171,
+    "faces": 59,
+    "ordered_cofacial_pairs": 3038,
+    "status_counts": {
+      "verified_positive": 3038
+    },
+    "max_rounds": 78,
+    "output_sha256": "fe8ffed7ea8ed46daa0e0c8d0c2172893bbf77be7feaf0066e52b9149bda44e8"
+  },
+  "hashes": {
+    "stage1_tasks": "c7ee66bb64e399c0ee24329c88db9211c5e31f52a25de5d08817323f23e23cfc",
+    "hard_allmaps_tasks": "80fe2a5833b2467662fbdc9d9cb2a2a08007d76b8e42c1d9d977f84870655184",
+    "stage1_screen": "f2e8685e18cb550b53b919ebb71a393c2868a1f63b6e52823341e4c88126a873",
+    "hard_allmaps_screen": "0fd695c2580d502950ebbd3a4c54d2ac7260fb4ef15d281784e7c0f85822de21",
+    "stage1_milp": "55171e74f00eee834ffbf6250b5954d750bcad69c898281a73ddbacb5c6bd744",
+    "hard_allmaps_milp": "48e954a83d9a5b394e0d751bc102b0007068f5bb2a3971096aeb28bf14fd2e1b",
+    "cofacial_output": "fe8ffed7ea8ed46daa0e0c8d0c2172893bbf77be7feaf0066e52b9149bda44e8",
+    "summary": "aa62b858d59096643c8d86c01ba0b85eea17ab69adb8fbfdb2db13bb9b5ce972"
+  },
+  "classification": "adversarial staged result, not complete all-orientation classification of every nested disk",
+  "next": "enumerate every nested composition under all 24 absolute source-boundary maps; then mine exact two-tree boundary languages"
+}
