@@ -3,10 +3,10 @@
 **Repository:** `Kajin-0/Barnettes_Conjecture`  
 **Authoritative branch:** `agent/adversarial-search-v2`  
 **Authoritative pull request:** PR #1  
-**Snapshot timestamp:** 2026-08-04 01:20 UTC  
+**Snapshot timestamp:** 2026-08-04 02:20 UTC  
 **Counterexample found:** No
 
-This is the single canonical mutable snapshot. `docs/RESEARCH_LOG.md` and dated files under `docs/research-log/` preserve chronology.
+This is the single canonical mutable snapshot. Dated files under `docs/research-log/` preserve chronology. A mathematical result is not incorporated until its evidence, code, run specification, workflow state, hashes, and interpretation are committed.
 
 ## 1. Objective and proof standard
 
@@ -14,80 +14,76 @@ Barnette's conjecture states:
 
 > Every simple cubic 3-connected bipartite planar graph is Hamiltonian.
 
-A counterexample claim requires all of the following:
+A counterexample claim requires:
 
-1. independent checks of simplicity, cubicity, bipartiteness, planarity, and vertex connectivity at least three;
-2. exact whole-graph non-Hamiltonicity;
-3. a machine-checkable CaDiCaL DRAT/LRAT proof accepted by an independent checker;
-4. a second independent Hamiltonian encoding or transparent exact decomposition check;
-5. graph6, edge list, embedding data, construction manifest, hashes, software versions, commands, and clean workflow reproduction.
+1. independent verification of simplicity, cubicity, bipartiteness, planarity, and vertex connectivity at least three;
+2. exact whole-graph non-Hamiltonicity in the primal edge formulation;
+3. exact nonexistence of a two-induced-tree coloring in the dual formulation;
+4. machine-checkable proof certificates accepted by independent checkers;
+5. graph6, edge list, rotation system, construction manifest, hashes, commands, software versions, and clean workflow reproduction.
 
-Timeouts, iteration caps, interrupted runs, sampled misses, and single-solver infeasibility statuses are always `unknown`.
+Timeouts, sampled misses, solver iteration limits, provisional infeasibility, malformed cases, and interrupted jobs are always `unknown`.
 
-## 2. Primary strategy: geometry-first six-port amplification
+## 2. Primary strategy: dual embedded substitution around mandatory large faces
 
-The strongest current construction route is:
-
-```text
-candidate 489 exact 26-state six-terminal source pole
-    -> canonical planar bipartite six-port patch generation
-    -> exact 75-state patch language
-    -> test every color-compatible terminal map
-    -> require empty exact composition and 3-connected Barnette assembly
-    -> whole-graph CaDiCaL proof plus independent DRAT check
-```
-
-The active complete search begins at internal patch order 16:
+The strongest current route is now:
 
 ```text
-plantri -bp -c2 -m2 -e21 -g 16 RES/64
+certified large-face obstruction in candidate 489
+    -> translate Hamiltonicity into a dual face-color cut
+    -> mine compact prime forbidden boundary clauses on 10+-faces
+    -> synthesize an even triangulated disk with the same cyclic boundary
+    -> require its exact boundary language to lie inside a certified forbidden relation
+    -> dualize to a simple cubic bipartite planar 3-connected graph
+    -> prove non-Hamiltonicity independently in primal and dual encodings
 ```
 
-Workflow:
+### Why this supersedes abstract pole multiplication
 
-```text
-.github/workflows/canonical-six-port-order16.yml
-```
+Exact empty finite-state products are already abundant on abstract planar 3-connected interaction skeletons. Every fully instantiated four- and five-pole empty product tested so far is nonplanar. The missing resource is therefore not another abstract obstruction; it is an obstruction whose cyclic terminal order is geometrically realizable.
 
-Initial run:
+The dual formulation makes the embedding intrinsic. A primal face of length `d` is a degree-`d` dual vertex. Replacing that vertex by an even triangulated disk is the geometry-native analogue of replacing the entire primal face by a cubic bipartite disk patch.
 
-```text
-30868419278
-```
+Recent work proves that Barnette graphs whose faces all have size at most eight are Hamiltonian. A counterexample must therefore contain a face of size at least ten. The same work succeeds through exact embedded graph substitutions and exhaustive open-end Hamiltonian-state checks, strongly supporting the present route.
 
-Commit introducing the workflow:
+### Dual equivalence used
 
-```text
-3ee903a12d3cad62f0638adf87d3408112b5429a
-```
+For a cubic plane graph `G` with dual `G*`:
 
-### Why geometry-first is primary
+- assign one binary color to every face of `G`, equivalently every vertex of `G*`;
+- select a primal edge exactly when its two incident faces have different colors;
+- a valid Hamiltonian cycle is such a cut whose selected edges form a connected spanning 2-factor;
+- equivalently, the two dual color classes induce trees.
 
-Exact empty finite-state products are now abundant on abstract planar 3-connected interaction skeletons. The obstruction repeatedly disappears when actual pole embeddings are imposed because every concretely tested empty product requires nonplanar terminal routing.
-
-The missing object is therefore not merely a restrictive language. It is a restrictive language with a realizable planar terminal rotation and enough distributed attachment to preserve 3-connectivity.
+Barnette's conjecture is therefore equivalent to partitioning every simple even plane triangulation into two induced trees.
 
 ## 3. Strongest certified source: candidate 489
 
 Candidate 489 is a verified simple cubic bipartite planar 3-connected graph with 100 vertices and 150 edges.
 
-On face 2, with cyclic vertex order
+Its face-size multiset contains exactly three faces of size at least ten:
+
+```text
+12, 30, 30
+```
+
+The distinguished 12-face has cyclic vertex order
 
 ```text
 5, 10, 17, 25, 35, 48, 40, 30, 22, 14, 18, 11
 ```
 
-the principal certified obstruction is
+and principal certified obstruction
 
 ```text
-x = (14,18)
-y = (10,17)
-z = (5,11)
+x = (14,18) must be included
+y = (10,17) must be excluded
+z = (5,11) must be excluded
 ```
 
-No Hamiltonian cycle contains `x` while avoiding both `y` and `z`.
+No Hamiltonian cycle satisfies that pattern.
 
-Six source cases were solved UNSAT by CaDiCaL 3.0.1 and their textual DRAT proofs were accepted by `drat-trim`.
+Six source cases were independently solved UNSAT by CaDiCaL 3.0.1 and their textual DRAT proofs were accepted by `drat-trim`.
 
 Evidence:
 
@@ -98,7 +94,7 @@ Evidence:
 - artifact `8834131003`
 - artifact SHA-256 `0aab9f4cdcd8ed61467f2a11de3d764e2dfc410b61b28a48ada61581ca9c1da1`
 
-Deleting the three obstruction edges produces an exact six-terminal pole with:
+Deleting the three principal edges yields an exact six-terminal source pole:
 
 ```text
 positive states = 26
@@ -106,24 +102,138 @@ exact negative states = 49
 unknown states = 0
 ```
 
-## 4. Completed theorem-aligned scans
+### Candidate 489 dual
+
+The reconstructed dual has:
+
+```text
+vertices = 52
+edges = 150
+simple = true
+planar = true
+all degrees even = true
+vertex connectivity = 4
+```
+
+The distinguished 12-face becomes a degree-12 dual vertex. The principal obstruction becomes three local color-parity conditions incident to that vertex:
+
+```text
+(14,18): bichromatic dual edge
+(10,17): monochromatic dual edge
+(5,11): monochromatic dual edge
+```
+
+## 4. Implemented dual campaigns
+
+### 4.1 Independent dual face-cut proof
+
+Script:
+
+```text
+search/dual_face_cut_obstruction.py
+```
+
+Workflow:
+
+```text
+.github/workflows/dual-face-cut-obstruction.yml
+```
+
+The formulation uses face-color variables as primary variables and primal edge variables constrained by XOR. It tests:
+
+- all eight inclusion patterns on the principal triple;
+- all six previously certified source obstructions.
+
+A positive must independently validate:
+
+- an explicit primal Hamiltonian cycle;
+- equality between the selected primal edges and the dual color cut;
+- two induced dual trees;
+- all requested include/exclude conditions.
+
+A negative is certified only when external CaDiCaL produces textual DRAT and `drat-trim` accepts it.
+
+### 4.2 Large-face prime-implicate scan
+
+Script:
+
+```text
+search/dual_face_implicate_scan.py
+```
+
+Workflow:
+
+```text
+.github/workflows/dual-face-implicate-scan.yml
+```
+
+It scans every partial boundary assignment of widths one, two, and three on the 12-, 30-, and 30-faces. For each face it:
+
+1. classifies every include/exclude pattern with an incremental exact SAT oracle;
+2. validates every positive by an explicit cycle;
+3. extracts prime forbidden patterns not implied by a smaller negative assignment;
+4. retains cyclic positions, spans, and gap signatures;
+5. escalates the 32 most compact prime ternary clauses to CaDiCaL/DRAT proof.
+
+The scanner deliberately labels internal solver negatives `solver_negative_unproved` until independent proof escalation.
+
+### 4.3 Isolated execution
+
+Temporary execution PR:
+
+```text
+PR #8
+agent/dual-execution-20260804 -> agent/dual-base-20260804
+```
+
+The PR changes only the two workflow triggers and must not be merged. Checked artifacts will be reconciled into PR #1.
+
+Design and provenance:
+
+- `docs/DUAL_FACE_SUBSTITUTION_ATTACK_2026-08-04.md`
+- `docs/runs/2026-08-04-dual-face-substitution.md`
+- `results/2026-08-04/dual_face_substitution_plan.json`
+- `docs/research-log/2026-08-04-0204-dual-face-substitution.md`
+- `docs/research-log/2026-08-04-0210-dual-run-launch.md`
+
+## 5. Parallel complete canonical order-16 patch search
+
+The previous geometry-first six-port route remains active in parallel, but is now secondary to the dual substitution route.
+
+Canonical generation:
+
+```text
+plantri -bp -c2 -m2 -e21 -g 16 RES/30
+```
+
+Isolated workflow run:
+
+```text
+30869004046
+```
+
+Temporary PR:
+
+```text
+PR #7
+```
+
+The 30 exact residues cover the complete canonical order-16 class. At this snapshot all jobs remain queued; no positive or negative mathematical inference is made.
+
+## 6. Completed theorem-aligned scans
 
 ### Consecutive facial ternary condition
-
-Every consecutive facial three-edge path was tested with outer edges excluded and the middle edge included.
 
 | Graph set | Cases | Hamiltonian witnesses | Certified negatives | Unknown |
 |---|---:|---:|---:|---:|
 | Candidate 489 | 300 | 300 | 0 | 0 |
-| 12 order-96 Grand-v3 parents | 3,456 | 3,456 | 0 | 0 |
-| 12 order-100 Grand-v3 parents | 3,600 | 3,600 | 0 | 0 |
+| 12 order-96 parents | 3,456 | 3,456 | 0 | 0 |
+| 12 order-100 parents | 3,600 | 3,600 | 0 | 0 |
 | **Total** | **7,356** | **7,356** | **0** | **0** |
 
 The consecutive facial route is closed for these 25 graphs.
 
 ### Grand Q-first v3
-
-Workflow run `30810878974` completed:
 
 | Order | Parents | Patch sides | Q states | Positive | Missing | Unknown |
 |---|---:|---:|---:|---:|---:|---:|
@@ -131,21 +241,11 @@ Workflow run `30810878974` completed:
 | 100 | 12 | 18,892 | 37,784 | 37,784 | 0 | 0 |
 | **Total** | **24** | **35,744** | **71,488** | **71,488** | **0** | **0** |
 
-Ordinary natural four-terminal missing-Q search is retired for these parent sets.
+Ordinary natural four-terminal missing-Q search is retired for those parent sets.
 
-## 5. Exact face relations and small-patch closures
+## 7. Small-patch and CEGIS closures
 
-Candidate 489's 12-edge face has 322 locally feasible inclusion masks; 100 extend to Hamiltonian cycles and 222 do not.
-
-Eight minimal cofacial edge-pair relations are proof-certified:
-
-```text
-for every Hamiltonian cycle C, a in C or b in C.
-```
-
-All eight double-avoidance cases were independently encoded, solved UNSAT by CaDiCaL, and accepted by `drat-trim`.
-
-Bounded families closed:
+Bounded families already closed:
 
 | Family | Exact result |
 |---|---:|
@@ -156,71 +256,19 @@ Bounded families closed:
 | Complete order-12 degree class | 98,484 matrices, minimum compatibility 9, zero maps 0 |
 | Complete canonical order-14 class | minimum compatibility 14, zero maps 0 |
 
-The first unresolved complete canonical patch order is 16.
+Relation-first candidate-489 CEGIS proposed 200,000 topologies at orders 16-24 and found no zero selector. Every job reached its 20,000-iteration cap, so this is not an exhaustive nonexistence result. Best compatibility was 14 at order 18.
 
-## 6. Relation-first candidate-489 CEGIS
+## 8. Asano repair and restrictive four-pole languages
 
-Workflow run `30864152943` searched unrestricted bipartite degree-constrained topology hosts at patch orders 16, 18, 20, 22, and 24 with two phase seeds each.
+The 26-vertex 2-connected cubic bipartite planar non-Hamiltonian graph was reconstructed as three edge-deleted cubes joined between two hubs. It has 324 perfect matchings and no Hamiltonian cycle.
 
-```text
-SAT topologies proposed = 200,000
-zero selectors = 0
-whole-graph candidates = 0
-```
+A complete 7,986-case three-edge permutation repair produced 128 Barnette graphs; all 128 are Hamiltonian and reduce to two nonisomorphic graphs.
 
-Every job reached the 20,000-iteration cap. This is not an exhaustive nonexistence result.
-
-| Patch order | Best compatibility |
-|---:|---:|
-| 16 | 17 |
-| 18 | 14 |
-| 20 | 17 |
-| 22 | 22 |
-| 24 | no structurally valid topology reached |
-
-The unrestricted host spends most proposals on nonplanar graphs. It is retained as a secondary relation-first engine, not the primary generator.
-
-## 7. Asano reconstruction and connectivity repair
-
-The 26-vertex 2-connected cubic bipartite planar non-Hamiltonian graph was reconstructed as three edge-deleted cubes joined between two degree-three hubs.
-
-```text
-vertices = 26
-edges = 39
-vertex connectivity = 2
-perfect matchings = 324
-Hamiltonian cycles = 0
-```
-
-Graph6:
-
-```text
-YPH?gWW?{??@?AO???g?E?@_??{?????C??AO?????A_??E???W???B_
-```
-
-A color-preserving three-edge permutation repair was exhausted:
-
-| Classification | Count |
-|---|---:|
-| Total | 7,986 |
-| Nonplanar | 5,999 |
-| Planar, connectivity 2 | 1,859 |
-| 3-connected Barnette graphs | 128 |
-| Barnette graphs with explicit Hamiltonian cycle | 128 |
-
-The 128 graphs reduce to two nonisomorphic graphs, each with 48 Hamiltonian cycles.
-
-The hub-deleted three-module core cannot yield a 3-connected graph through any external six-port connector: each cube module has only two attachment vertices, and deleting their two connector neighbors isolates the module. This route is permanently retired.
-
-## 8. New restrictive four-terminal pole languages
-
-Each repaired 26-vertex graph has nine unavoidable cofacial edge pairs. Deleting any one gives an exact five-state pole
+Each repaired graph contains unavoidable cofacial pairs yielding the exact five-state pole
 
 ```text
 A = {P02, P03, P12, P13, Q01_23}.
 ```
-
-All 18 poles have the same language and no unknown states.
 
 The complete order-10 four-pole degree class produced four restrictive relations:
 
@@ -231,71 +279,36 @@ B2 = {P03, P13, Q02_13, Q03_12}
 B3 = {P12, P13, Q02_13, Q03_12}
 ```
 
-Representative graph6 records:
+## 9. Mixed-pole exact synthesis and its geometric failure
+
+### Four-pole K4
 
 ```text
-B0: I?@bCqWM?
-B1: I??uEOwM?
-B2: I?B@eOwM?
-B3: I?AdApWM?
-```
-
-## 9. Mixed-pole exact synthesis
-
-### Four-pole K4 skeleton
-
-```text
-color-valid 3-connected interaction matchings = 3,072
-zero-language matchings = 1,536
-zero relation assignments = 3,072
-concrete assemblies tested = 12,800
+zero abstract relation assignments = 3,072
+complete concrete assemblies tested = 12,800
 planar concrete assemblies = 0
 ```
 
-### Five-pole doubled-wheel skeleton
+### Five-pole doubled wheel
 
 ```text
-Eulerian orientations = 26
-terminal matchings = 6,656
-abstract relation combinations = 20,800,000
-zero relation assignments = 43,008
-concrete assemblies tested = 39,168
+zero abstract relation assignments = 43,008
+complete concrete assemblies tested = 39,168
 planar concrete assemblies = 0
 ```
 
-### Six-pole octahedral skeleton
+### Six-pole octahedron
 
 ```text
-Eulerian orientations = 38
-terminal matchings = 38,912
-relation assignments per matching = 15,625
-total exact combinations = 608,000,000
+total exact matching/relation combinations = 608,000,000
 zero combinations = 0
 ```
 
-### Other six-pole planar 3-connected multigraph skeletons
+Five other six-pole planar 3-connected multigraph skeleton classes admit abstract empty products. Four reach abstract order 92. A pool of 100,000 representative concrete order-92 assemblies was entirely nonplanar, but that last geometry screen is not exhaustive over every terminal-labeled `A` pole.
 
-Five remaining skeleton classes all admit abstract empty products. Four classes have abstract order-92 compositions with two `A` poles and four order-10 poles.
+This body of evidence is the central reason for moving to dual embedded substitution.
 
-A pool of 100,000 distinct exact order-92 empty products was generated from 8,775,756 random exact tests. Every representative concrete embedding was nonplanar.
-
-This 100,000-case geometry screen is large but not an exhaustive classification over all terminal-labeled `A` poles.
-
-Detailed evidence:
-
-- `docs/ASANO_REPAIR_MIXED_POLES_2026-08-04.md`
-- `results/2026-08-04/asano_repair_mixed_pole_summary.json`
-- `docs/research-log/2026-08-04-0120-asano-repair-mixed-poles.md`
-
-## 10. Exact six-pole and connectivity-two near-counterexamples
-
-The original certified ternary poles `A`, `B`, and `C` each have:
-
-```text
-positive = 26
-exact negative = 49
-unknown = 0
-```
+## 10. Connectivity-two near-counterexamples
 
 Corrected exact `AABCC` synthesis over 100,000 permutations produced:
 
@@ -309,50 +322,38 @@ Corrected exact `AABCC` synthesis over 100,000 permutations produced:
 
 All 65 near-counterexamples have connectivity two. Generic separator-crossing `C4` repair produced 655 valid 3-connected Barnette graphs, but every one regained the forbidden-compatible Hamiltonian trace.
 
-This remains a fallback library, not the primary route.
+## 11. Immediate execution sequence
 
-## 11. Permanent warnings
+1. Complete the independent dual proof campaign and correct any discrepancy before using the dual scanner.
+2. Complete the width-1/2/3 scans on all three mandatory large faces.
+3. Add every checked prime ternary clause to a machine-readable embedded obstruction library.
+4. Select the smallest cyclic obstruction kernel with no width-1 or width-2 explanation.
+5. Enumerate even triangulated disk substitutions with that exact cyclic boundary.
+6. Compute exact open-end two-tree/path-cover languages before whole-graph assembly.
+7. Reject substitutions that do not preserve dual 4-connectivity or primal 3-connectivity.
+8. For any zero composition, immediately generate both primal and dual whole-graph proof packages.
+9. Reconcile the parallel complete order-16 canonical patch search when Actions capacity permits.
+
+## 12. Permanent warnings
 
 1. A positive underapproximation cannot establish a negative language composition.
-2. SciPy/HiGHS infeasibility is not proof; earlier false negatives were retracted after witnesses were found.
-3. Matching rarity is not exact language sparsity.
-4. Terminal order and embedding orientation are mathematical data, not formatting details.
-5. 3-connectivity must be imposed during synthesis, not repaired after an obstruction is assembled.
-6. Abstract interaction-skeleton planarity does not imply planarity of the instantiated pole composition.
-7. PR prose, chat output, and interrupted workflows are not reproducible evidence.
+2. Terminal order and embedding orientation are mathematical data.
+3. Abstract interaction-skeleton planarity does not imply planarity after pole instantiation.
+4. Connectivity must be designed into the substitution, not repaired afterward.
+5. SciPy/HiGHS infeasibility is not proof.
+6. A SAT solver's incremental UNSAT return is discovery evidence until reproduced with a checked certificate.
+7. PR prose, chat output, queued workflows, and sampled searches are not mathematical evidence.
 
-## 12. Retired or strongly deprioritized routes
-
-Do not restart without a new mathematical reason:
-
-1. random perfect-matching fragmentation as evidence of non-Hamiltonicity;
-2. ordinary four-terminal missing-Q search on the retained order-96/order-100 parents;
-3. candidate-489 cofacial two-edge deletion as a restrictive four-pole source;
-4. small forced-edge expansion through the completed 7,388-case family;
-5. direct two-copy unavoidable-pair closure;
-6. hub-deleted Asano-core connector synthesis;
-7. homogeneous five-state pole composition through six copies;
-8. mixed four-pole K4 and five-pole doubled-wheel closure—the complete concrete classes are nonplanar;
-9. generic post hoc connectivity repair;
-10. blind growth without an exact boundary-language objective.
-
-## 13. Immediate execution sequence
-
-1. Complete workflow `30868419278` across all 64 order-16 plantri residues.
-2. Aggregate input counts, accepted patch counts, exact language sizes, global minimum compatibility, zero maps, and incomplete states.
-3. If any zero map yields a Barnette graph, produce the full proof bundle immediately.
-4. If order 16 closes positively, extend the same canonical geometry-first campaign to order 18 with sharding determined from the observed order-16 population.
-5. Continue geometry-aware relation synthesis using terminal rotations extracted from canonical planar patches, rather than abstract pole languages alone.
-
-## 14. Current assessment
+## 13. Current assessment
 
 No counterexample has been found.
 
-The project has moved beyond searching for any local obstruction. It now has multiple exact obstruction languages, abundant abstract empty products, a proof-producing whole-graph pipeline, and a sharply isolated missing object:
+The most important conceptual advance is that the search target is now localized in the correct category. The missing object is not simply a sparse boundary relation. It is:
 
 ```text
-one planar six-terminal selector with empty exact composition and a
-3-connected glued graph.
+an even triangulated disk with a realizable cyclic boundary whose exact
+two-tree language lies inside a proof-certified forbidden relation and whose
+dual closure remains 4-connected.
 ```
 
-The active order-16 canonical campaign is the strongest current attempt to produce that object.
+That object would dualize directly to the planar 3-connected cubic bipartite selector that the earlier abstract language searches could not realize.
