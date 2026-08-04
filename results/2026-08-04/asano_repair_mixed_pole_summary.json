@@ -1,0 +1,186 @@
+{
+  "date_utc": "2026-08-04",
+  "campaign": "asano-repair-and-mixed-four-pole-search",
+  "counterexample_found": false,
+  "classification": "locally exact structural and finite-state results; clean Actions reproduction pending",
+  "asano26_reconstruction": {
+    "construction": "three copies of a cube with one edge removed, joined between two degree-three hub vertices",
+    "graph6": "YPH?gWW?{??@?AO???g?E?@_??{?????C??AO?????A_??E???W???B_",
+    "vertices": 26,
+    "edges": 39,
+    "simple": true,
+    "cubic": true,
+    "bipartite": true,
+    "planar": true,
+    "node_connectivity": 2,
+    "perfect_matchings": 324,
+    "hamiltonian_cycles": 0
+  },
+  "three_edge_permutation_repair": {
+    "family_definition": "delete one internal edge from each of the three cube modules and reconnect the three color-0 endpoints to the three color-1 endpoints by a permutation",
+    "cases": 7986,
+    "nonplanar": 5999,
+    "planar_connectivity_2": 1859,
+    "barnette_graphs": 128,
+    "barnette_graphs_with_explicit_hamiltonian_cycle": 128,
+    "nonisomorphic_barnette_graphs": 2,
+    "nonisomorphic_graph6": [
+      "YOSr?]?CA@???A?C??g?E?@_??w@GC?????A?C????A_??E???W???B_",
+      "YOSr?]?CA@???A?C??g?E?@_??w@????C??A_C???GA???E???W???B_"
+    ],
+    "hamiltonian_cycles_per_nonisomorphic_graph": 48,
+    "successful_permutations": [
+      [1, 2, 0],
+      [2, 0, 1]
+    ],
+    "successful_deleted_edge_types": [
+      "L-A",
+      "L-E",
+      "R-B",
+      "R-F"
+    ]
+  },
+  "repaired_graph_obstructions": {
+    "unavoidable_cofacial_edge_pairs_per_graph": 9,
+    "four_terminal_poles": 18,
+    "exact_pole_signature": [
+      "P02",
+      "P03",
+      "P12",
+      "P13",
+      "Q01_23"
+    ],
+    "signature_size": 5,
+    "unknown_states": 0,
+    "direct_two_pole_maps": 1296,
+    "direct_two_pole_minimum_compatibility": 4,
+    "direct_two_pole_planar_maps": 1296,
+    "direct_two_pole_connectivity_2": 1296,
+    "direct_two_pole_zero_maps": 0
+  },
+  "order10_restrictive_four_poles": {
+    "labeled_degree_matrices": 1486,
+    "invalid_or_nonplanar_or_disconnected": 217,
+    "signature_size_distribution": {
+      "4": 36,
+      "5": 9,
+      "6": 720,
+      "7": 504
+    },
+    "restrictive_signature_types": {
+      "B0": {
+        "graph6": "I?@bCqWM?",
+        "states": ["P02", "P03", "Q02_13", "Q03_12"]
+      },
+      "B1": {
+        "graph6": "I??uEOwM?",
+        "states": ["P02", "P12", "Q02_13", "Q03_12"]
+      },
+      "B2": {
+        "graph6": "I?B@eOwM?",
+        "states": ["P03", "P13", "Q02_13", "Q03_12"]
+      },
+      "B3": {
+        "graph6": "I?AdApWM?",
+        "states": ["P12", "P13", "Q02_13", "Q03_12"]
+      }
+    }
+  },
+  "mixed_relation_exact_search": {
+    "relation_types": ["A", "B0", "B1", "B2", "B3"],
+    "four_pole_k4_skeleton": {
+      "color_valid_terminal_matchings_with_simple_interaction_connectivity_at_least_3": 3072,
+      "zero_language_matchings": 1536,
+      "zero_relation_assignments": 3072,
+      "canonical_geometric_configurations": 128,
+      "terminal_labeled_asano_pole_classes_tested_per_A_position": 10,
+      "concrete_assemblies_tested": 12800,
+      "nonplanar": 12800,
+      "planar": 0
+    },
+    "five_pole_planar_3connected_skeleton": {
+      "skeleton": "five-vertex wheel with two opposite rim edges doubled",
+      "eulerian_orientations": 26,
+      "terminal_matchings_after_fixing_one local rotation": 6656,
+      "relation_assignments_per_matching": 3125,
+      "total_abstract_combinations": 20800000,
+      "zero_language_matchings": 2560,
+      "zero_relation_assignments": 43008,
+      "local_terminal_symmetry_classes": 96,
+      "terminal_labeled_asano_classes_after same-color swaps": 12,
+      "concrete_assemblies_tested": 39168,
+      "nonplanar": 39168,
+      "planar": 0
+    },
+    "six_pole_octahedral_skeleton": {
+      "skeleton": "octahedron K_{2,2,2}",
+      "eulerian_orientations": 38,
+      "terminal_matchings_after_fixing one local rotation": 38912,
+      "relation_assignments_per_matching": 15625,
+      "total_exact_combinations": 608000000,
+      "zero_language_combinations": 0
+    },
+    "other_six_pole_planar_3connected_multigraph_skeletons": {
+      "skeleton_classes": 5,
+      "abstract_zero_found_in_every_class": true,
+      "smallest_abstract_candidate_order": 92,
+      "zero92_sample_generation": {
+        "random_exact_assignments_tested": 8775756,
+        "distinct_zero_language_assignments_retained": 100000,
+        "representative_embedding_assemblies_tested": 100000,
+        "nonplanar": 100000,
+        "planar": 0
+      },
+      "exhaustive_geometry_classification": false
+    }
+  },
+  "candidate489_relation_first_cegis": {
+    "workflow_run": 30864152943,
+    "commit": "12478ccc3802d87b222e0ec8e490f3f950f77905",
+    "orders": [16, 18, 20, 22, 24],
+    "seeds_per_order": 2,
+    "sat_topologies_proposed_per_job": 20000,
+    "total_sat_topologies_proposed": 200000,
+    "all_jobs_status": "max_iterations_exhausted",
+    "counterexample_found": false,
+    "complete_classification": false,
+    "best_compatibility_by_order": {
+      "16": 17,
+      "18": 14,
+      "20": 17,
+      "22": 22,
+      "24": null
+    },
+    "artifact_digests": {
+      "16_seed0": "sha256:429d1f040e10a79b557fe480b8c6e59381742ee19eb9be5cbf704cb01958d721",
+      "16_seed1": "sha256:1287f206615e7cc9ae8ca0b729d44115388bd5ff2045d8243d8821e3e59a5fb5",
+      "18_seed0": "sha256:79faa240801d7c116687633d5262c81d3bab48d552194bf4d56caac634835d2a",
+      "18_seed1": "sha256:0c09b1bebf239dd8dac58571f1d6981c67f9ee7198a7ce8bed06d805f18decef",
+      "20_seed0": "sha256:40c16b4e9748a7693ce34145fbcee771b5d15980a488daa7cda5aac959587d5b",
+      "20_seed1": "sha256:9f83a13fa319b55e37e6f602bb34f680f1ad51398616895c81a1c581ae0ca00c",
+      "22_seed0": "sha256:8ba9735945efaf46df63b1ecab6f2bd89c5a767e6afa7df7b2b3010b52f1f345",
+      "22_seed1": "sha256:c6d2bd31c6f89a9095b845059a9deb0855e867744c54358c2f96bb7bb83f1bd0",
+      "24_seed0": "sha256:ff6061159a46543feb2c87f60dc466d078e11defdf1ac86f80310d4718dd1c99",
+      "24_seed1": "sha256:ee2d85f24815416a7e97138f2af1502dc8f95d9f67f7ebe961100f194f57fb39"
+    }
+  },
+  "active_next_campaign": {
+    "name": "complete canonical order-16 six-port closure search",
+    "workflow_file": ".github/workflows/canonical-six-port-order16.yml",
+    "workflow_run": 30868419278,
+    "commit": "3ee903a12d3cad62f0638adf87d3408112b5429a",
+    "shards": 64,
+    "plantri_command_template": "plantri -bp -c2 -m2 -e21 -g 16 RES/64",
+    "status_at_checkpoint": "queued"
+  },
+  "strategic_conclusion": {
+    "primary": "geometry-first canonical six-port generation at order 16 and above",
+    "reason": "mixed finite-state obstructions are abundant on abstract planar 3-connected skeletons, but every concretely tested zero requires nonplanar terminal routing; topology and language must therefore be synthesized together",
+    "retired_or_deprioritized": [
+      "hub-deleted Asano core connector: permanent two-vertex separator",
+      "homogeneous five-state pole compositions through six copies",
+      "mixed four-pole K4 and five-pole wheel closures: complete concrete nonplanarity",
+      "blind unrestricted Kq,q CEGIS as the sole search engine"
+    ]
+  }
+}
