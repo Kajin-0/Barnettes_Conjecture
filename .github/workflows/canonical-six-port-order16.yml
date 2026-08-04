@@ -21,14 +21,14 @@ concurrency:
 
 jobs:
   search:
-    name: Order-16 patch shard ${{ matrix.residue }}/64
+    name: Order-16 patch shard ${{ matrix.residue }}/30
     runs-on: ubuntu-latest
     timeout-minutes: 360
     strategy:
       fail-fast: false
       max-parallel: 20
       matrix:
-        residue: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63]
+        residue: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     steps:
       - name: Check out execution branch
         uses: actions/checkout@v4
@@ -85,7 +85,7 @@ jobs:
           mkdir -p "${ROOT}"
           ./plantri58/plantri \
             -bp -c2 -m2 -e21 -g 16 \
-            "${{ matrix.residue }}/64" \
+            "${{ matrix.residue }}/30" \
             2> "${ROOT}/plantri.stderr" \
             | LC_ALL=C sort -u \
             > "${ROOT}/patches.g6"
@@ -134,8 +134,8 @@ jobs:
           manifest={
               'campaign':'canonical-order16-six-port-closure-search',
               'residue':residue,
-              'modulus':64,
-              'plantri_command':f'plantri -bp -c2 -m2 -e21 -g 16 {residue}/64',
+              'modulus':30,
+              'plantri_command':f'plantri -bp -c2 -m2 -e21 -g 16 {residue}/30',
               'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
               'source_file':'results/2026-08-02/three_edge_face_candidates.json',
               'summary':summary,
