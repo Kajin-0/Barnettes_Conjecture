@@ -1,0 +1,27 @@
+{
+  "date_utc": "2026-08-04",
+  "counterexample_found": false,
+  "campaign": "boundary-language-directed-degree4-degree6-expansion",
+  "joint_relation_correction": {
+    "retracted": "earlier joint queries constrained radial dual edges incident to the replaced vertex",
+    "correct": "a vertex replacement opens the link cycle of its neighbors, so the second seam consists of link-cycle edges",
+    "contaminated_relations_not_used_for_synthesis": true
+  },
+  "correct_joint_relations": {
+    "degree4_face_relabeled_v45": {"queries":1888,"positive_pairs":780,"exact_negative_pairs":1108,"unknown":0,"original_seam_masks_with_positive_pair":118,"second_boundary_mask_union":[1,2,4,5,7,8,10,11,13,14],"multiplicity_histogram":{"6":56,"10":40,"2":22},"sha256":"e01938e9b791de2eb51670efdd2cc6b7c559fead22e310ba4e92b6aa2836a650"},
+    "degree6_face_relabeled_v40": {"queries":7552,"positive_pairs":1020,"exact_negative_pairs":6532,"unknown":0,"original_seam_masks_with_positive_pair":118,"second_boundary_mask_union":[1,2,4,8,10,16,18,21,29,31,32,34,42,45,47,53,55,59,61,62],"multiplicity_histogram":{"6":56,"16":40,"2":22},"sha256":"b61d843d330aca435967cb959db1cfb4ecc6b9ae3fade4f638692cb8d3cc4d6e"}
+  },
+  "degree4_disk_rigidity": {
+    "disk_orders_k":[3,4,5,6,7,8],"disk_types":65,"exact_signature_count_per_disk":[6],"common_signature_count":6,"all_languages_identical":true,
+    "common_signatures":["10:0,-1,0,-1:-1,1,-1,3","10:0,-1,2,-1:-1,1,-1,1","14:0,-1,-1,-1:-1,1,1,1","2:0,-1,0,0:-1,1,-1,-1","4:0,0,-1,0:-1,-1,2,-1","8:0,0,0,-1:-1,-1,-1,3"],
+    "signature_output_sha256":"7e2fe216c1c9b93cc3fcb91eba8cae43ca34f6da3073a46a64d78def76dafbd1"
+  },
+  "targeted_hamiltonicity": {
+    "face45_B4_k5_k7":{"tasks":120,"verified_hamiltonian":120,"invalid_witnesses":[],"witness_source":{"seed1":84,"seed2":23,"seed3":8,"seed4":3,"milp":2}},
+    "face45_B4_k8":{"tasks":80,"verified_hamiltonian":80,"invalid_witnesses":[],"witness_source":{"seed2":18,"seed3":7,"seed1":53,"seed4":1,"milp":1}},
+    "face40_B6_k5":{"tasks":60,"verified_hamiltonian":60,"invalid_witnesses":[],"witness_source":{"seed1":46,"seed2":12,"seed3":2}},
+    "face40_B6_k6_k7":{"tasks":524,"verified_hamiltonian":524,"invalid_witnesses":[],"witness_source":{"seed2":102,"seed1":393,"seed4":2,"seed3":27}}
+  },
+  "totals":{"tested_graph_encodings":784,"verified_hamiltonian":784,"negative":0,"unknown":0,"invalid_witnesses":0},
+  "task_hashes":{"face45_B4_k5_k7_tasks.txt":"7afa28e21e22aa700cebdc57997a1175555bdfd039fb9d251a923dcdf7155d1d","face45_B4_k8_tasks.txt":"277e4df9231b81f555d030e5c6d5661ff8345e86a8d2226197d03421c61300c2","face40_B6_k5_tasks.txt":"2fae674e60681867bd53adc51811540c6b1c36b2bbf2f78e026d6af5117a5dbc","face40_B6_k6_k7_tasks.txt":"f2830c1473c0015a2044ced23a096b26f1bc04f679851ec5f748a7a885883469"}
+}

@@ -3,7 +3,7 @@
 **Repository:** `Kajin-0/Barnettes_Conjecture`  
 **Authoritative branch:** `agent/adversarial-search-v2`  
 **Authoritative research PR:** PR #1, temporarily closed and unmerged  
-**Snapshot timestamp:** 2026-08-04 19:20 UTC  
+**Snapshot timestamp:** 2026-08-04 20:00 UTC  
 **Counterexample found:** No
 
 This is the canonical mutable snapshot. Every material result must be committed as code or a reproducible specification, machine-readable evidence, a dated log, and an updated interpretation. Timeouts, branch cutoffs, sampled misses, provisional infeasibility, malformed cases, and queued jobs are always `unknown`.
@@ -130,9 +130,37 @@ Evidence:
 - `docs/EXACT_SEAM_LANGUAGE_PILOT_2026-08-04.md`
 - `results/2026-08-04/exact_seam_language_pilot_summary.json`
 
-## 7. Strongest active strategy
+## 7. Boundary-directed degree-4 and degree-6 result
 
-Blind one-hole order growth and uniform minimal second-face replacement are now secondary. The active semantic target is the exact 118-mask language of `421_32_6`.
+The corrected two-seam formulation uses the neighbor link cycle exposed by removal of the second dual vertex. Earlier radial-edge joint relations are retracted.
+
+For base `421_32_6`:
+
+```text
+correct degree-4 joint relation = 780 positive / 1,108 exact negative
+correct degree-6 joint relation = 1,020 positive / 6,532 exact negative
+unknown = 0
+```
+
+Every one of 65 parity-valid degree-4 disks through `k=8` has the identical six-state forest-partition language. Targeted higher-order closure searches then gave:
+
+```text
+degree-4 k=5..8 = 200/200 Hamiltonian
+degree-6 k=5..7 = 584/584 Hamiltonian
+negative = 0
+unknown = 0
+```
+
+Evidence:
+
+- `docs/BOUNDARY_DIRECTED_DEGREE4_DEGREE6_2026-08-04.md`
+- `results/2026-08-04/boundary_directed_degree4_degree6_summary.json`
+
+The degree-4 route is now strongly deprioritized because its observed interface language is rigid. The active variable-language target is degree 8.
+
+## 8. Strongest active strategy
+
+Blind one-hole order growth, uniform minimal second-face replacement, and undirected degree-4 growth are now secondary. The active semantic target is the exact 118-mask language of `421_32_6` combined with a variable degree-8 second-hole language.
 
 Execution sequence:
 
@@ -145,7 +173,7 @@ Execution sequence:
 
 The desired object is no longer merely a hard graph. It is a second embedded gadget that eliminates all 118 surviving seam colorings.
 
-## 8. Secondary and retired findings
+## 9. Secondary and retired findings
 
 Still-valid negative results include:
 
