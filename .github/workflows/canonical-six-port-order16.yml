@@ -2,19 +2,9 @@ name: Canonical order-16 six-port closure search
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - agent/adversarial-search-v2
-      - agent/order16-execution-20260804
-    paths:
-      - .github/workflows/canonical-six-port-order16.yml
-      - search/exact_six_port_closure_search.py
-      - search/sat_verify_face_constraints.py
-      - results/2026-08-02/three_edge_face_candidates.json
-      - requirements.txt
   pull_request:
     branches:
-      - main
+      - agent/order16-base-20260804
     paths:
       - .github/workflows/canonical-six-port-order16.yml
       - search/exact_six_port_closure_search.py
@@ -40,7 +30,7 @@ jobs:
       matrix:
         residue: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63]
     steps:
-      - name: Check out research branch
+      - name: Check out execution branch
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -65,6 +55,7 @@ jobs:
             https://users.cecs.anu.edu.au/~bdm/plantri/plantri58.tar.gz \
             --output plantri58.tar.gz
           sha256sum plantri58.tar.gz | tee plantri58.sha256
+          grep -q '^e78a944116fec9f2c9f5e484206276cc2b0043bae803e9815f4b2683614629b8 ' plantri58.sha256
           tar xzf plantri58.tar.gz
           make -C plantri58 plantri
           test -x plantri58/plantri
