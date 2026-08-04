@@ -1,0 +1,52 @@
+{
+  "base": "421_32_6",
+  "base_signature_count": 380,
+  "spec_count": 20,
+  "tasks": 1055,
+  "stats": {
+    "attempt": 2192,
+    "valid": 1530,
+    "B4_k3_valid": 328,
+    "outside_valid": 792,
+    "duplicate": 475,
+    "B8_k2_valid": 70,
+    "B8_k3_valid": 284,
+    "B8_k4_valid": 440,
+    "seam_valid": 594,
+    "B6_k2_valid": 60,
+    "B6_k3_valid": 96,
+    "B6_k4_valid": 252,
+    "nested_valid": 144
+  },
+  "by_order": {
+    "116": 386,
+    "114": 65,
+    "118": 604
+  },
+  "task_sha256": "ada7111431e883dc6acf8593b9608387b3b1210048471e1f51eb3ef1e3e6de37",
+  "date_utc": "2026-08-04",
+  "classification": "complete positive classification",
+  "forest_signature_count": 380,
+  "forest_boundary_masks": 309,
+  "forest_valid_colorings": 1304,
+  "seed_results": {
+    "1": {"positive": 888, "unknown": 167},
+    "2": {"positive": 871, "unknown": 184},
+    "3": {"positive": 896, "unknown": 159},
+    "4": {"unknown": 159, "positive": 896}
+  },
+  "portfolio_union_positive": 1054,
+  "portfolio_intersection_unknown": [
+    "421_32_6__v17_B6_k4_310_1_outside_m10"
+  ],
+  "milp_tail": {
+    "id": "421_32_6__v17_B6_k4_310_1_outside_m10",
+    "classification": "verified_positive",
+    "rounds": 16,
+    "sec": 0.7587757110595703,
+    "witness_sha256": "d88150a71f6654fd4aca563b9423fa5d5b9825878978abd55eb5faae29091ed6"
+  },
+  "negative": 0,
+  "unknown": 0,
+  "counterexample_found": false
+}
