@@ -3,7 +3,7 @@
 **Repository:** `Kajin-0/Barnettes_Conjecture`  
 **Authoritative branch:** `agent/adversarial-search-v2`  
 **Authoritative research PR:** PR #1, temporarily closed and unmerged  
-**Snapshot timestamp:** 2026-08-04 20:00 UTC  
+**Snapshot timestamp:** 2026-08-04, degree-8 semantic-descent checkpoint  
 **Counterexample found:** No
 
 This is the canonical mutable snapshot. Every material result must be committed as code or a reproducible specification, machine-readable evidence, a dated log, and an updated interpretation. Timeouts, branch cutoffs, sampled misses, provisional infeasibility, malformed cases, and queued jobs are always `unknown`.
@@ -12,176 +12,81 @@ This is the canonical mutable snapshot. Every material result must be committed 
 
 A Barnette counterexample requires independent verification of simplicity, cubicity, bipartiteness, planarity, and vertex connectivity at least three; exact primal non-Hamiltonicity; exact failure of the dual two-induced-tree formulation; checked proof certificates; and complete graph/construction provenance.
 
-No solver infeasibility status alone is accepted as a counterexample.
-
 ## 2. Certified source
 
-Candidate 489 is a 100-vertex simple cubic bipartite planar 3-connected graph. Its distinguished 12-face has cyclic order
+Candidate 489 is a 100-vertex simple cubic bipartite planar 3-connected graph with a proof-certified same-face obstruction on its distinguished 12-face. Six source cases have CaDiCaL DRAT proofs accepted by `drat-trim`.
 
-```text
-5, 10, 17, 25, 35, 48, 40, 30, 22, 14, 18, 11
-```
-
-and proof-certified obstruction
-
-```text
-(14,18) included
-(10,17) excluded
-(5,11) excluded.
-```
-
-Six source cases have CaDiCaL DRAT proofs accepted by `drat-trim`. The dual is an even 4-connected plane triangulation with 52 vertices and 150 edges.
-
-Primary source evidence:
-
-- `results/2026-08-02/three_edge_face_candidates.json`
-- workflow `30750008325`
-- artifact `8834131003`
-- artifact SHA-256 `0aab9f4cdcd8ed61467f2a11de3d764e2dfc410b61b28a48ada61581ca9c1da1`
-
-## 3. Complete one-face substitution bound through order 112
-
-The uniform link-cycle generator exhausts every parity-valid triangulated 12-disk with one through seven internal vertices.
+## 3. Complete one-face bound through order 112
 
 ```text
 disk classes = 4,243
-boundary maps = 101,832
-valid 4-connected closure constructions = 46,672
-tested graph encodings = 46,109
+valid closure constructions = 46,672
+tested encodings = 46,109
 Hamiltonian = 46,109
 negative = 0
 unknown = 0
-invalid witnesses = 0
 ```
 
-Therefore any counterexample in the candidate-489 one-face substitution family needs at least eight inserted disk vertices, corresponding to primal order at least 114.
-
-Evidence:
-
-- `docs/UNIFORM_DUAL_SUBSTITUTION_THROUGH_ORDER112_2026-08-04.md`
-- `results/2026-08-04/uniform_dual_substitution_k7_summary.json`
-- `search/uniform_dual_cycle_disk_generator.py`
+Any counterexample in that one-face family requires primal order at least 114.
 
 ## 4. Complete minimum two-face extension
 
-Every minimum nontrivial degree-4, degree-6, and degree-8 second-face replacement was applied to all 157 deterministic hard-tail order-110/order-112 closures under every dihedral map.
-
 ```text
-raw valid constructions = 69,126
-exact duplicate labeled graphs removed = 34,692
 distinct graph encodings = 34,434
 Hamiltonian = 34,434
 negative = 0
 unknown = 0
-invalid witnesses = 0
 ```
 
-The four-seed exact matching portfolio found 34,340 witnesses. The remaining 94 cases were all solved positively by an independent 2-factor MILP/subtour formulation, and every witness was revalidated.
+## 5. Boundary-directed degree-4/6 result
+
+Degree-4 disk language is rigid through k=8. Targeted degree-4 and degree-6 higher-order closures gave 784/784 Hamiltonian.
+
+## 6. Degree-8 semantic descent
+
+The variable degree-8 interface produced the first repeated exact contractions of the original 12-seam language:
+
+```text
+421_32_6                      118 masks
+first disjoint B8 replacement 111 masks
+second disjoint B8 replacement 75 masks
+```
+
+The first replacement is a 116-vertex Barnette graph; the second is a 120-vertex Barnette graph. Both are Hamiltonian as whole graphs, but their seam languages were classified exactly over all 2,048 complement-normalized colorings with zero unknowns.
+
+The complete first-face B8 k=2..5 bounded families contained 336 graphs, all Hamiltonian. The complete geometry-filtered second disjoint-face B8 k=2..6 family contained 1,136 graphs, all Hamiltonian.
+
+Relabeled vertex 14 in the 111-mask source was rejected as a fixed-seam target because it belongs to the original seam. The descent used disjoint vertex 23.
 
 Evidence:
 
-- `docs/MINIMAL_MULTIFACE_COMPLETE_2026-08-04.md`
-- `results/2026-08-04/minimal_multiface_complete_summary.json`
-- `results/2026-08-04/minimal_multiface_structural_summary.json`
+- `docs/DEGREE8_SEMANTIC_DESCENT_2026-08-04.md`
+- `results/2026-08-04/degree8_semantic_descent_summary.json`
 
-## 5. Signature-directed deeper two-face result
+## 7. Strongest active strategy
 
-The exact local two-tree forest signature ranked disk class `421_32` as the smallest language among the hard-base disks:
-
-```text
-valid local colorings = 1,304
-boundary color masks = 309
-exact forest signatures = 380
-```
-
-Deepening its selected closure `421_32_6` through every degree-4/6/8 second-face disk with at most four internal vertices produced:
+The active source is the exact 75-mask order-120 graph:
 
 ```text
-distinct graphs = 1,055
-orders = 114, 116, 118
-Hamiltonian = 1,055
-negative = 0
-unknown = 0
+421_32_6__v2_B8_k3_300_0_m3__v23_B8_k3_300_0_m5
 ```
-
-The single graph unresolved by four exact branch orders was solved positively by independent MILP in 16 subtour rounds.
-
-Evidence:
-
-- `results/2026-08-04/signature_leader_deep_complete_summary.json`
-- `docs/research-log/2026-08-04-1845-signature-leader-deep.md`
-
-## 6. Exact original-seam boundary language
-
-A complement-normalized 12-bit dual boundary coloring fixes the twelve primal seam-edge statuses. Exhaustive perfect-matching-complement recursion classified all 2,048 masks for three leading closures.
-
-| Base | Positive | Exact negative | Unknown |
-|---|---:|---:|---:|
-| `421_32_6` | **118** | 1,930 | 0 |
-| `511_530_1` | 127 | 1,921 | 0 |
-| `511_552_6` | 127 | 1,921 | 0 |
-
-A corrected independent dual-color/XOR MILP agrees mask-for-mask with the recursion.
-
-An earlier 112-mask count is retracted. Its cause was a noncontiguous dual vertex labeling that made one color variable overlap the first edge variable. The contaminated scans were deleted and recomputed. This defect was confined to the newly written mask MILP and does not affect prior primal Hamiltonicity results.
-
-Evidence:
-
-- `docs/EXACT_SEAM_LANGUAGE_PILOT_2026-08-04.md`
-- `results/2026-08-04/exact_seam_language_pilot_summary.json`
-
-## 7. Boundary-directed degree-4 and degree-6 result
-
-The corrected two-seam formulation uses the neighbor link cycle exposed by removal of the second dual vertex. Earlier radial-edge joint relations are retracted.
-
-For base `421_32_6`:
-
-```text
-correct degree-4 joint relation = 780 positive / 1,108 exact negative
-correct degree-6 joint relation = 1,020 positive / 6,532 exact negative
-unknown = 0
-```
-
-Every one of 65 parity-valid degree-4 disks through `k=8` has the identical six-state forest-partition language. Targeted higher-order closure searches then gave:
-
-```text
-degree-4 k=5..8 = 200/200 Hamiltonian
-degree-6 k=5..7 = 584/584 Hamiltonian
-negative = 0
-unknown = 0
-```
-
-Evidence:
-
-- `docs/BOUNDARY_DIRECTED_DEGREE4_DEGREE6_2026-08-04.md`
-- `results/2026-08-04/boundary_directed_degree4_degree6_summary.json`
-
-The degree-4 route is now strongly deprioritized because its observed interface language is rigid. The active variable-language target is degree 8.
-
-## 8. Strongest active strategy
-
-Blind one-hole order growth, uniform minimal second-face replacement, and undirected degree-4 growth are now secondary. The active semantic target is the exact 118-mask language of `421_32_6` combined with a variable degree-8 second-hole language.
 
 Execution sequence:
 
-1. choose a second face by minimizing an observed and then exact joint relation with the original 12-seam;
-2. compute the exact joint boundary language between the original seam and that face;
-3. enumerate parity-valid embedded replacement disks for the selected face;
-4. compose the replacement language against the exact joint relation;
-5. require empty composition, an even sphere triangulation, and dual 4-connectivity simultaneously;
-6. send every whole-graph nonpositive result to independent primal and dual proof-producing SAT.
+1. rank only faces disjoint from the original 12-seam;
+2. compute the complete exact seam/face relation for the best variable degree-8 face;
+3. impose even-sphere and dual 4-connectivity before semantic ranking;
+4. classify the original seam language of the strongest valid closures exactly;
+5. repeat while language cardinality decreases;
+6. if the descent stalls, move to the exact two-boundary forest-partition relation;
+7. send every whole-graph nonpositive result to independent primal and dual proof-producing SAT.
 
-The desired object is no longer merely a hard graph. It is a second embedded gadget that eliminates all 118 surviving seam colorings.
+The direct breakthrough target is a geometry-valid sequence reducing 75 masks to zero.
 
-## 9. Secondary and retired findings
+## 8. Permanent corrections
 
-Still-valid negative results include:
-
-- 7,356/7,356 consecutive facial ternary cases positive;
-- Grand Q-first v3: 71,488/71,488 natural cut-side states positive;
-- complete small six-port classes through canonical order 14: no empty composition;
-- 12,800 four-pole and 39,168 five-pole abstract-zero concrete assemblies: all nonplanar;
-- 65 planar five-pole near-counterexamples: all vertex connectivity two;
-- 655 connectivity repairs: all regained compatible Hamiltonian traces.
+- An initial boundary-mask MILP had a variable-index collision from noncontiguous dual labels; contaminated results were deleted and recomputed.
+- Initial two-seam queries used radial edges; the correct replacement boundary is the neighbor link cycle.
+- A face lying on the original seam cannot be used for fixed-seam descent without changing the optimized boundary.
 
 PR #1 remains temporarily closed to prevent obsolete workflow fan-out. The branch remains authoritative.
