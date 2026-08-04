@@ -1,0 +1,157 @@
+name: Dual large-face prime implicate scan
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/adversarial-search-v2
+    paths:
+      - .github/workflows/dual-face-implicate-scan.yml
+      - search/dual_face_implicate_scan.py
+      - search/dual_face_cut_obstruction.py
+      - search/sat_verify_face_constraints.py
+      - results/2026-08-02/three_edge_face_candidates.json
+      - requirements.txt
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/dual-face-implicate-scan.yml
+      - search/dual_face_implicate_scan.py
+      - search/dual_face_cut_obstruction.py
+      - search/sat_verify_face_constraints.py
+      - results/2026-08-02/three_edge_face_candidates.json
+      - requirements.txt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dual-face-implicate-scan-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install pinned dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m py_compile search/dual_face_implicate_scan.py
+          python -m py_compile search/dual_face_cut_obstruction.py
+          python -m py_compile search/sat_verify_face_constraints.py
+
+      - name: Build independent proof toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/marijnheule/drat-trim.git tools/drat-trim
+          make -C tools/drat-trim
+          test -x tools/drat-trim/drat-trim
+          git -C tools/drat-trim rev-parse HEAD | tee drat-trim.commit
+
+          git clone --depth 1 https://github.com/arminbiere/cadical.git tools/cadical
+          cd tools/cadical
+          ./configure
+          make -j2
+          test -x build/cadical
+          build/cadical --version
+          git rev-parse HEAD | tee ../../cadical.commit
+
+      - name: Scan all width-three clauses on 10+-faces
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=results/2026-08-04/dual-face-implicate-scan
+          mkdir -p "${ROOT}"
+          python search/dual_face_implicate_scan.py \
+            --input results/2026-08-02/three_edge_face_candidates.json \
+            --output-dir "${ROOT}" \
+            --solver g4 \
+            --min-face-size 10 \
+            --max-width 3 \
+            --max-rounds 10000 \
+            --proof-limit 32 \
+            --proof-solver tools/cadical/build/cadical \
+            --drat-trim tools/drat-trim/drat-trim \
+            --proof-timeout 1800 \
+            | tee "${ROOT}/campaign.log"
+
+      - name: Enforce fail-closed classifications
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,pathlib
+          path=pathlib.Path('results/2026-08-04/dual-face-implicate-scan/dual_face_implicate_summary.json')
+          data=json.loads(path.read_text())
+          summary=data['summary']
+          assert summary['dual_validation']['even_plane_triangulation']
+          assert summary['face_sizes_scanned']==[12,30,30]
+          assert summary['remaining_unknown']==0
+          assert summary['proof_candidates_attempted']==summary['proof_candidates_certified']
+          for item in data['proof_results']:
+              result=item['proof_result']
+              assert result['classification']=='certified_negative'
+              assert result['proof_verification']['verified']
+          print(json.dumps(summary,indent=2))
+          PY
+
+      - name: Write manifest
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib,platform,subprocess
+          import networkx
+          try:
+              import pysat
+              pysat_version=pysat.__version__
+          except Exception:
+              pysat_version=None
+          root=pathlib.Path('results/2026-08-04/dual-face-implicate-scan')
+          files=[]
+          for path in sorted(root.rglob('*')):
+              if path.is_file():
+                  files.append({'path':str(path),'bytes':path.stat().st_size,'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
+          summary_path=root/'dual_face_implicate_summary.json'
+          summary=json.loads(summary_path.read_text())['summary'] if summary_path.exists() else None
+          manifest={
+              'campaign':'dual-large-face-prime-implicate-scan',
+              'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+              'summary':summary,
+              'drat_trim_commit':pathlib.Path('drat-trim.commit').read_text().strip() if pathlib.Path('drat-trim.commit').exists() else None,
+              'cadical_commit':pathlib.Path('cadical.commit').read_text().strip() if pathlib.Path('cadical.commit').exists() else None,
+              'software':{'python':platform.python_version(),'networkx':networkx.__version__,'python_sat':pysat_version},
+              'files':files,
+          }
+          root.mkdir(parents=True,exist_ok=True)
+          (root/'manifest.json').write_text(json.dumps(manifest,indent=2))
+          PY
+
+      - name: Upload scan and proof evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dual-face-implicate-scan-${{ github.sha }}
+          path: |
+            results/2026-08-04/dual-face-implicate-scan
+            results/2026-08-02/three_edge_face_candidates.json
+            search/dual_face_implicate_scan.py
+            search/dual_face_cut_obstruction.py
+            search/sat_verify_face_constraints.py
+            drat-trim.commit
+            cadical.commit
+          if-no-files-found: error
+          retention-days: 90
