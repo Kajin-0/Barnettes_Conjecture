@@ -2,19 +2,9 @@ name: Dual 12-disk substitution search
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - agent/adversarial-search-v2
-    paths:
-      - .github/workflows/dual-disk-substitution-search.yml
-      - search/dual_disk_substitution_search.py
-      - search/dual_face_cut_obstruction.py
-      - search/sat_verify_face_constraints.py
-      - results/2026-08-02/three_edge_face_candidates.json
-      - requirements.txt
   pull_request:
     branches:
-      - main
+      - agent/dual-disk-base-20260804
     paths:
       - .github/workflows/dual-disk-substitution-search.yml
       - search/dual_disk_substitution_search.py
@@ -41,7 +31,7 @@ jobs:
       matrix:
         order: [13, 14, 15, 16, 17, 18]
     steps:
-      - name: Check out research branch
+      - name: Check out execution branch
         uses: actions/checkout@v4
 
       - name: Set up Python
