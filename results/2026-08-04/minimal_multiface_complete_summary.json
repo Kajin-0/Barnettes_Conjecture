@@ -1,0 +1,47 @@
+{
+  "date_utc": "2026-08-04",
+  "campaign": "complete-minimal-second-face-expansion-of-hard-order110-order112-closures",
+  "counterexample_found": false,
+  "classification": "complete positive classification",
+  "structural": {
+    "hard_bases": 157,
+    "raw_valid": 69126,
+    "exact_duplicate_labeled": 34692,
+    "tasks": 34434,
+    "by_order": {"114": 9379, "112": 53, "116": 25002},
+    "by_location": {"outside": 24655, "seam": 6034, "nested": 3745},
+    "by_replaced_degree": {"4": 25162, "8": 3887, "6": 5385},
+    "task_sha256": "9768d19341991b456f9493e3921d5c0167a94826d00c0b64474627117141ae1a",
+    "metadata_sha256": "30b1d595c9cdb0feb0ab5d055e269aab447756e76ff97a16dbe59a1f1265b766"
+  },
+  "portfolio": {
+    "1": {"positive": 27135, "unknown": 7299},
+    "2": {"positive": 27116, "unknown": 7318},
+    "3": {"positive": 27129, "unknown": 7305},
+    "4": {"positive": 27046, "unknown": 7388}
+  },
+  "portfolio_union_positive": 34340,
+  "portfolio_intersection_unknown": 94,
+  "independent_milp_tail": {
+    "cases": 94,
+    "verified_positive": 94,
+    "negative": 0,
+    "unknown": 0,
+    "rounds_min": 4,
+    "rounds_max": 45,
+    "rounds_mean": 22.851063829787233,
+    "seconds_total": 102.41339230537415,
+    "witness_hash_mismatches": []
+  },
+  "final": {"tested_graph_encodings": 34434, "verified_hamiltonian": 34434, "negative": 0, "unknown": 0, "invalid_witnesses": 0},
+  "validation": {"all_witnesses_revalidated": true, "checks": ["edge membership", "exactly n distinct edges", "degree two at every vertex", "connectedness"]},
+  "hashes": {
+    "tasks_sha256": "9768d19341991b456f9493e3921d5c0167a94826d00c0b64474627117141ae1a",
+    "metadata_sha256": "30b1d595c9cdb0feb0ab5d055e269aab447756e76ff97a16dbe59a1f1265b766",
+    "seed1_sha256": "e56d5911726dcde7f759355d38c6c1903537d3c15e2a37294039157249cf52de",
+    "seed2_sha256": "c6bea39de04072a83174e3da4420d91c908777efed2f15116cd5a06c1f3a04db",
+    "seed3_sha256": "dbe09a1b126e49495d569283caa2f3bd85d1ed5c5eaba3cd633853e2be6b5e2b",
+    "seed4_sha256": "af845c37d6b1d2e2da9e7a7c863dceee03e7a6abf8ae70ad3577ebd035923627",
+    "milp_tail_sha256": "1c18c3fd2e8d48dafb400628e50ea6fdb06eb37eccdb3d9f82f34875e98653cf"
+  }
+}

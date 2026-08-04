@@ -1,0 +1,21 @@
+{
+  "date_utc": "2026-08-04",
+  "campaign": "exact-original-seam-boundary-color-languages",
+  "counterexample_found": false,
+  "classification": "exact matching-complement recursion with independent corrected MILP cross-check",
+  "results": {
+    "421_32_6": {"complement_normalized_boundary_colorings": 2048, "positive": 118, "exact_negative": 1930, "unknown": 0, "invalid_positive_witnesses": [], "corrected_milp_positive": 118, "milp_exact_recursion_symmetric_difference": 0},
+    "511_530_1": {"complement_normalized_boundary_colorings": 2048, "positive": 127, "exact_negative": 1921, "unknown": 0, "invalid_positive_witnesses": [], "corrected_milp_positive": 127, "milp_exact_recursion_symmetric_difference": 0},
+    "511_552_6": {"complement_normalized_boundary_colorings": 2048, "positive": 127, "exact_negative": 1921, "unknown": 0, "invalid_positive_witnesses": [], "corrected_milp_positive": 127, "milp_exact_recursion_symmetric_difference": 0}
+  },
+  "bug_retraction": {
+    "invalid_result": "421_32_6 had 112 positive masks",
+    "root_cause": "dual vertex labels were not relabeled contiguously, causing one face-color variable to overlap the first edge variable",
+    "scope": "only the initial newly-written boundary-mask MILP scans",
+    "corrected": "421_32_6 has 118 positive masks; corrected MILP and independent recursion agree mask-for-mask",
+    "contaminated_outputs_deleted_and_recomputed": true
+  },
+  "strategic_leader": "421_32_6",
+  "minimum_positive_boundary_language": 118,
+  "acceptance_policy": "negative classifications derive from exhaustive perfect-matching-complement recursion with no budget exhaustion; MILP infeasibility is cross-check only and is not proof"
+}
