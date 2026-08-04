@@ -120,6 +120,7 @@ The result also changes the strategic assessment: blind low-order growth around 
 - Machine summary: `results/2026-08-04/uniform_dual_substitution_k7_summary.json`
 - Uniform generator: `search/uniform_dual_cycle_disk_generator.py`
 - Generator SHA-256: `2caa76f131031df2c92e7877610d79ce89260bc05421594b9e96da2400766a99`
-- Summary SHA-256: `e4e5a1cfb9a030246aabc9db94760d0d166715a9a9872e0d7454d3d4fc87850b`
+- Machine-summary SHA-256: `4596e3f3a7b7f9c760d110ee26ab3bf49f55ae0495cf7e1ad82cd24548caf19b`
+- Full local evidence archive SHA-256: `d9a0686c6405478878ddf462f0f559db3caa745c7c4ccee0d1151ee677c5ad40`
 
-A local full-evidence archive contains the generated disk representatives, task files, solver outputs, independent MILP witnesses, and validation manifests.
+The local full-evidence archive contains the generated disk representatives, task files, solver outputs, independent MILP witnesses, and validation manifests.
