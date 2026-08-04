@@ -1,0 +1,54 @@
+{
+  "date_utc": "2026-08-04",
+  "campaign": "dual-face-substitution-attack",
+  "counterexample_found": false,
+  "primary_direction": "dual embedded substitution synthesis around mandatory 10+-faces",
+  "source": {
+    "graph": "canonical candidate 489",
+    "primal_vertices": 100,
+    "primal_edges": 150,
+    "dual_vertices": 52,
+    "dual_edges": 150,
+    "dual_node_connectivity": 4,
+    "large_face_sizes": [12, 30, 30],
+    "principal_face_size": 12,
+    "principal_edges": {
+      "bichromatic_or_included": [14, 18],
+      "monochromatic_or_excluded": [[10, 17], [5, 11]]
+    }
+  },
+  "phase0": {
+    "script": "search/dual_face_cut_obstruction.py",
+    "workflow": ".github/workflows/dual-face-cut-obstruction.yml",
+    "tests": {
+      "principal_patterns": 8,
+      "previously_certified_cases": 6
+    },
+    "negative_policy": "CaDiCaL textual DRAT accepted by drat-trim",
+    "positive_policy": "explicit primal Hamiltonian cycle plus two induced dual trees"
+  },
+  "phase1": {
+    "script": "search/dual_face_implicate_scan.py",
+    "workflow": ".github/workflows/dual-face-implicate-scan.yml",
+    "faces": [12, 30, 30],
+    "assignment_widths": [1, 2, 3],
+    "proof_escalation_limit": 32,
+    "objective": "extract compact prime forbidden boundary clauses with cyclic-order data"
+  },
+  "phase2": {
+    "objective": "enumerate embedded disk substitutions whose exact boundary language is contained in a certified forbidden large-face relation",
+    "acceptance": [
+      "simple cubic bipartite planar 3-connected primal graph",
+      "empty exact boundary composition",
+      "whole-graph primal edge-encoding proof",
+      "whole-graph dual face-cut proof",
+      "independent proof checks and full provenance"
+    ]
+  },
+  "literature_basis": [
+    "Barnette conjecture is equivalent to partitioning a simple even plane triangulation into two induced trees",
+    "Barnette graphs with all faces of size at most 8 are Hamiltonian",
+    "the face-size proof uses exact embedded graph substitutions and exhaustive open-end state checking",
+    "Barnette conjecture reduces to cubic planar braces"
+  ]
+}
