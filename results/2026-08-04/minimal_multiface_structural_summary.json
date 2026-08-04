@@ -1,0 +1,76 @@
+{
+  "hard_bases": 157,
+  "raw_valid": 69126,
+  "exact_duplicate_labeled": 34692,
+  "tasks": 34434,
+  "by_order": {
+    "114": 9379,
+    "112": 53,
+    "116": 25002
+  },
+  "by_location": {
+    "outside": 24655,
+    "seam": 6034,
+    "nested": 3745
+  },
+  "by_replaced_degree": {
+    "4": 25162,
+    "8": 3887,
+    "6": 5385
+  },
+  "task_sha256": "9768d19341991b456f9493e3921d5c0167a94826d00c0b64474627117141ae1a",
+  "metadata_sha256": "30b1d595c9cdb0feb0ab5d055e269aab447756e76ff97a16dbe59a1f1265b766",
+  "date_utc": "2026-08-04",
+  "campaign": "minimal-second-face-expansion-of-hard-order110-order112-closures",
+  "counterexample_found": false,
+  "classification": "structural generation complete; Hamiltonicity portfolio active",
+  "base_selection": {
+    "bases": 157,
+    "definition": "all deterministic 5000-branch hard cases from the complete order-110 and order-112 one-face campaigns",
+    "base_breakdown": {
+      "order110": 1,
+      "order112": 156
+    }
+  },
+  "second_face_replacements": {
+    "degree4": {
+      "disk_internal_vertices": 3,
+      "disk_classes": 1,
+      "maps_per_face": 8,
+      "primal_order_increment": 4
+    },
+    "degree6": {
+      "disk_internal_vertices": 2,
+      "disk_classes": 1,
+      "maps_per_face": 12,
+      "primal_order_increment": 2
+    },
+    "degree8": {
+      "disk_internal_vertices": 2,
+      "disk_classes": 1,
+      "maps_per_face": 16,
+      "primal_order_increment": 2
+    }
+  },
+  "structural_acceptance": [
+    "simple even sphere triangulation",
+    "every vertex link is one cycle",
+    "Euler characteristic 2",
+    "no nonfacial triangle via exactly two common neighbors per edge",
+    "dual 4-connectivity",
+    "cubic bipartite connected primal"
+  ],
+  "first_hard_case": {
+    "id": "511_42_21__v54_B8_nested_m2",
+    "classification": "verified_positive",
+    "rounds": 40,
+    "sec": 0.6646645069122314,
+    "witness_sha256": "8509ace2da6739f0835e5eceddc2e6c5951b474becc74f1fc284d94cbae70166"
+  },
+  "seeded_portfolio": {
+    "primary_seed": 1,
+    "branch_budget_per_seed": 5000,
+    "status": "running",
+    "negative_policy": "no cutoff or MILP infeasibility is interpreted as non-Hamiltonicity"
+  }
+}
