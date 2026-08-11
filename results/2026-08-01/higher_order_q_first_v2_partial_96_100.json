@@ -1,0 +1,75 @@
+{
+  "date": "2026-08-01",
+  "campaign": "higher-order-q-first-v2",
+  "status": "partial verified checkpoint; orders 96 and 100 complete; 94 and 98 pending",
+  "counterexample_found": false,
+  "orders": {
+    "96": {
+      "canonical_unique_graphs": 4800,
+      "eligible_after_filters": 4740,
+      "filter_rejections": {"decode_or_order": 0, "class": 0, "easy_faces": 0, "easy_adjacency": 60},
+      "retained_graphs": 6,
+      "graphs_analyzed": 6,
+      "patch_sides": 1920,
+      "q_states_attempted": 3840,
+      "verified_positive_q_states": 3840,
+      "provisional_negative_q_states": 0,
+      "unknown_q_states": 0,
+      "sat_candidate_cases": 0,
+      "patch_order": {"min": 4, "median": 48.0, "max": 92},
+      "solve_time_s": {"median": 0.032436251640319824, "p95": 2.5391889810562125, "max": 8.624959945678711},
+      "hardest_case": {
+        "key": "g2-c3-s1",
+        "state": "Q03_12",
+        "patch_n": 88,
+        "elapsed_s": 8.624959945678711,
+        "parent_checks": {"n": 96, "m": 144, "cubic": true, "bipartite": true, "planar": true, "node_connectivity": 3, "simple": true}
+      },
+      "artifact_id": 8819552108,
+      "artifact_sha256": "ac2e219a86811b11fc646b9d5b012eac55e0a2b1f2db5b89d693c62ff675d591",
+      "order_summary_sha256": "0b169fd6e0d04624e7138f33a102a9803fcce263c7cc80a3182d521132b067b4",
+      "q_first_results_sha256": "c93160a8ffd8623535d35baacfc5fd2fd5f71b49f46c4b5a36494fe0bf566b33",
+      "all_task_keys_unique": true,
+      "patch_result_cardinality_verified": true,
+      "all_witnesses_independently_validated": true
+    },
+    "100": {
+      "canonical_unique_graphs": 4800,
+      "eligible_after_filters": 4738,
+      "filter_rejections": {"decode_or_order": 0, "class": 0, "easy_faces": 0, "easy_adjacency": 62},
+      "retained_graphs": 6,
+      "graphs_analyzed": 6,
+      "patch_sides": 1920,
+      "q_states_attempted": 3840,
+      "verified_positive_q_states": 3840,
+      "provisional_negative_q_states": 0,
+      "unknown_q_states": 0,
+      "sat_candidate_cases": 0,
+      "patch_order": {"min": 4, "median": 50.0, "max": 96},
+      "solve_time_s": {"median": 0.03741097450256348, "p95": 2.8026841402053804, "max": 8.590343952178955},
+      "hardest_case": {
+        "key": "g2-c348-s0",
+        "state": "Q01_23",
+        "patch_n": 96,
+        "elapsed_s": 8.590343952178955,
+        "parent_checks": {"n": 100, "m": 150, "cubic": true, "bipartite": true, "planar": true, "node_connectivity": 3, "simple": true}
+      },
+      "artifact_id": 8819569587,
+      "artifact_sha256": "0b4cfbab9b08c896dedc76404c01f56845597d404cc6fc2f3067f246aaad9188",
+      "order_summary_sha256": "3f0cc04bb39eeee814b91b4360a65f5673adb299ee36660ad1f3033d0bff13ac",
+      "q_first_results_sha256": "242c0792130a7099979ba3aadb472153fcc235f578d7f9f194d0e0340e73dfbf",
+      "all_task_keys_unique": true,
+      "patch_result_cardinality_verified": true,
+      "all_witnesses_independently_validated": true
+    }
+  },
+  "aggregate": {
+    "canonical_records_sampled": 9600,
+    "patch_sides": 3840,
+    "q_states_attempted": 7680,
+    "verified_positive_q_states": 7680,
+    "negative_or_unknown": 0,
+    "certified_missing_q_states": 0
+  },
+  "interpretation": "Across the completed higher orders, every tested natural cyclic-4-cut side realized both noncrossing Q states through explicit independently validated witnesses."
+}
