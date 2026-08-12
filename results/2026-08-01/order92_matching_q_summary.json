@@ -1,0 +1,62 @@
+{
+  "date": "2026-08-01",
+  "campaign": "order92-all-leaders-perfect-matching-Q-screen",
+  "counterexample_found": false,
+  "mathematical_reduction": {
+    "statement": "For a natural cyclic-4-cut side patch, every Q-state selected edge set is the complement of a perfect matching, and conversely a perfect matching complement realizes a Q-state exactly when it has two components with the requested terminal pairing.",
+    "reason": [
+      "internal patch vertices have degree 3 and selected Q-degree 2",
+      "four terminals have degree 2 and selected Q-degree 1",
+      "therefore every vertex is incident to exactly one omitted edge",
+      "the omitted edges form a perfect matching"
+    ]
+  },
+  "screen_64_trials": {
+    "canonical_parent_graphs": 8,
+    "natural_cut_side_patches": 10192,
+    "perfect_matching_trials_cap_per_patch": 64,
+    "elapsed_s": 23.619082927703857,
+    "Q01_23_witnessed_patches": 3661,
+    "Q03_12_witnessed_patches": 2546,
+    "both_Q_witnessed_patches": 2357,
+    "exactly_one_Q_witnessed_patches": 1493,
+    "zero_sampled_Q_witness_patches": 6342,
+    "source_sha256": "9c165e5cacfd4bd344f7eb9c3b7ff5518bf545dc654ede750f8e4673981876dc",
+    "interpretation": "Positive witnesses are conclusive. Zero hits are only a sampler-rarity signal and have no negative mathematical meaning."
+  },
+  "deep_4096_trials": {
+    "hardest_zero_hit_patches_selected": 200,
+    "both_Q_witnessed": 13,
+    "exactly_one_Q_witnessed": 116,
+    "zero_sampled_Q_witnesses": 71,
+    "elapsed_s": 27.239093542099,
+    "source_sha256": "7bf87765e9d61ed42734eafc037f718ed34a97c889b9cf10dd3c0f6653f80cc4"
+  },
+  "exact_escalation": {
+    "patches": 71,
+    "Q_states": 142,
+    "feasible_states": 142,
+    "independently_validated_witnesses": 142,
+    "invalid_witnesses": 0,
+    "maximum_patch_order": 86,
+    "elapsed_s": 16.802674055099487,
+    "full_local_witness_source_sha256": "706496b3461df3deb580615cf656235da6b6e109af11a411820aa755a8a69b91",
+    "validation_file": "results/2026-08-01/order92_q_hardest71_validation.json",
+    "validation_sha256": "cdf2f9010c590ea4c3b94dd3e696512fa4ce73878e0fb54ba41fc2c09f838ef6",
+    "strongest_witness_file": "results/2026-08-01/order92_q_strongest_near_miss_witnesses.json.gz.b64",
+    "strongest_witness_uncompressed_sha256": "67174b4503c67aaac791be242fffb51641d4d72bd4e28283bbb6bcfcf4d961d7",
+    "strongest_witness_gzip_sha256": "6bc40e24b4215fa8fb848508e2690ec46bc1f907e59f3ee7df78f359d32e67e9"
+  },
+  "strongest_near_miss": {
+    "patch": "g6-c633-s0",
+    "patch_order": 86,
+    "sampled_perfect_matchings": 4096,
+    "sampled_Q_hits": 0,
+    "best_sampled_complement_components": 4,
+    "exact_Q01_23": "feasible",
+    "exact_Q01_23_elapsed_s": 0.655200719833374,
+    "exact_Q03_12": "feasible",
+    "exact_Q03_12_elapsed_s": 0.022648334503173828
+  },
+  "conclusion": "Perfect-matching rarity is effective for ranking difficult Q states, but all 142 exact states in the hardest tail were positive. No restrictive Q patch was found."
+}
