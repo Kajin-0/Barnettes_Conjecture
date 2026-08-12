@@ -1,0 +1,151 @@
+name: Six-terminal cyclic-cut interface pilot
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/six-terminal-interface
+    paths:
+      - .github/workflows/six-terminal-interface.yml
+      - search/six_terminal_matching_screen.py
+      - search/six_terminal_direct_glue.py
+      - search/canonical_prepare.py
+      - source/**
+      - requirements.txt
+      - docs/runs/2026-08-01-six-terminal-interface.md
+  pull_request:
+    branches:
+      - agent/adversarial-search-v2
+    paths:
+      - .github/workflows/six-terminal-interface.yml
+      - search/six_terminal_matching_screen.py
+      - search/six_terminal_direct_glue.py
+      - search/canonical_prepare.py
+      - source/**
+      - requirements.txt
+      - docs/runs/2026-08-01-six-terminal-interface.md
+
+permissions:
+  contents: read
+
+concurrency:
+  group: six-terminal-interface-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  six-terminal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      PYTHONHASHSEED: "0"
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      PLANTRI_SHA256: e78a944116fec9f2c9f5e484206276cc2b0043bae803e9815f4b2683614629b8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Reconstruct source archive
+        run: python source/unpack_sources.py
+
+      - name: Build official plantri 5.8
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            https://users.cecs.anu.edu.au/~bdm/plantri/plantri58.tar.gz \
+            --output plantri58.tar.gz
+          echo "${PLANTRI_SHA256}  plantri58.tar.gz" | sha256sum --check
+          tar xzf plantri58.tar.gz
+          make -C plantri58 plantri
+
+      - name: Regenerate canonical order-92 sample
+        run: |
+          set -euo pipefail
+          ROOT=results/six-terminal-interface
+          mkdir -p "${ROOT}/raw"
+          : > "${ROOT}/plantri.stderr"
+          for residue in 0 137 911 2718 4093 6121 7351 9001; do
+            timeout 180 bash -c \
+              "./plantri58/plantri -bc4dg 92d ${residue}/10000 2>>${ROOT}/plantri.stderr | head -n 300 > ${ROOT}/raw/shard_${residue}.g6" \
+              || true
+          done
+          cat "${ROOT}"/raw/*.g6 | LC_ALL=C sort -u > "${ROOT}/canonical_92.g6"
+          test "$(wc -l < ${ROOT}/canonical_92.g6)" -gt 0
+
+      - name: Reproduce eight retained leaders
+        run: |
+          set -euo pipefail
+          ROOT=results/six-terminal-interface
+          python search/canonical_prepare.py \
+            "${ROOT}/canonical_92.g6" \
+            --order 92 --trials 128 --top 8 --seed 20260801 \
+            --output "${ROOT}/verified_canonical_92.json" \
+            | tee "${ROOT}/ranking.log"
+
+      - name: Screen cyclic six-cut signatures
+        run: |
+          set -euo pipefail
+          ROOT=results/six-terminal-interface
+          python search/six_terminal_matching_screen.py \
+            --verified "${ROOT}/verified_canonical_92.json" \
+            --graphs 8 --trials 64 --deep-count 100 --deep-trials 4096 \
+            --workers 4 --seed 20260801 \
+            --output "${ROOT}/six_terminal_results.json" \
+            | tee "${ROOT}/six_terminal.log"
+
+      - name: Directly synthesize sparse-interface graphs
+        run: |
+          set -euo pipefail
+          ROOT=results/six-terminal-interface
+          python search/six_terminal_direct_glue.py \
+            --input "${ROOT}/six_terminal_results.json" \
+            --candidate-cap 240 --solve-cap 160 \
+            --workers 4 --milp-time 15 --wall-time 25 --seed 20260801 \
+            --output "${ROOT}/direct_glue_results.json" \
+            | tee "${ROOT}/direct_glue.log"
+
+      - name: Write manifest
+        if: always()
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib,platform,subprocess
+          import networkx,numpy,scipy
+          root=pathlib.Path('results/six-terminal-interface')
+          files=[]
+          if root.exists():
+              for path in sorted(root.rglob('*')):
+                  if path.is_file():
+                      files.append({'path':str(path),'bytes':path.stat().st_size,'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
+          manifest={
+              'campaign':'six-terminal-cyclic-cut-interface-and-direct-gluing',
+              'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+              'plantri_archive_sha256':'e78a944116fec9f2c9f5e484206276cc2b0043bae803e9815f4b2683614629b8',
+              'software':{'python':platform.python_version(),'networkx':networkx.__version__,'numpy':numpy.__version__,'scipy':scipy.__version__},
+              'classification_policy':{
+                  'sampled_state':'positive only after witness validation',
+                  'whole_graph_positive':'positive only after independent cycle validation',
+                  'whole_graph_infeasible':'provisional until proof-producing SAT',
+                  'timeout_or_failure':'unknown'
+              },
+              'files':files,
+          }
+          root.mkdir(parents=True,exist_ok=True)
+          (root/'manifest.json').write_text(json.dumps(manifest,indent=2))
+          PY
+
+      - name: Upload six-terminal evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: six-terminal-interface-${{ github.sha }}
+          path: results/six-terminal-interface
+          if-no-files-found: error
+          retention-days: 30
