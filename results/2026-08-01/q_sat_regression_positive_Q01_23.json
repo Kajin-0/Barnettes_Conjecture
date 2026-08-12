@@ -1,0 +1,16 @@
+{
+  "case_id": "cycle4-positive-Q01_23",
+  "state": "Q01_23",
+  "selected_edges": [[0,1],[2,3]],
+  "validation": {
+    "all_edges_in_patch": true,
+    "edge_count": 2,
+    "expected_edge_count": 2,
+    "degree_constraints": true,
+    "components": 2,
+    "actual_pairing": [[0,1],[2,3]],
+    "expected_pairing": [[0,1],[2,3]],
+    "pairing_matches": true,
+    "valid": true
+  }
+}
